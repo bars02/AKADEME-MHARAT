@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="register">Register - Akram Academy</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-light flex items-center justify-center min-vh-100">
+    <div class="glass-card" style="width: 100%; max-width: 500px;">
+        <div class="text-center mb-6">
+            <a href="index.html" class="text-primary mb-4 block" style="font-size: 2rem;"><i class="fas fa-graduation-cap"></i></a>
+            <h1 data-i18n="register">Register</h1>
+            <p class="text-muted" data-i18n="registerSub">Join our medical education network</p>
+        </div>
+
+        <form id="regForm" class="grid gap-4">
+            <div class="form-group">
+                <label data-i18n="fullName">Full Name</label>
+                <input type="text" id="name" class="form-input" required>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div class="form-group">
+                    <label data-i18n="role">Role</label>
+                    <select id="role" class="form-input" required>
+                        <option value="student" data-i18n="student">Student</option>
+                        <option value="instructor" data-i18n="instructor">Instructor</option>
+                        <option value="admin" data-i18n="admin">Admin</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label data-i18n="department">Department</label>
+                    <select id="dept" class="form-input" required></select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label data-i18n="academicEmail">Email</label>
+                <input type="email" id="email" class="form-input" required>
+            </div>
+            <div class="form-group">
+                <label data-i18n="password">Password</label>
+                <input type="password" id="pass" class="form-input" required minlength="6">
+            </div>
+            <button type="submit" id="subBtn" class="btn btn-primary w-full py-3" data-i18n="register">Register</button>
+        </form>
+        <p class="text-center mt-4"><span data-i18n="alreadyHaveAccount">Registered?</span> <a href="login.html" data-i18n="login">Login</a></p>
+    </div>
+
+    <div id="toastContainer" class="toast-container"></div>
+
+    <script type="module">
+        import i18n from './js/i18n.js';
+        import { supabase } from './js/services/supabase.js';
+        import { ui } from './js/services/ui.js';
+
+        async function init() {
+            try {
+                const select = document.getElementById('dept');
+                if (!supabase || supabase.supabaseUrl.includes('YOUR_')) {
+                    throw new Error('Supabase not configured. Please update js/services/supabase.js');
+                }
+                
+                select.innerHTML = `<option value="">${i18n.lang === 'ar' ? 'جاري التحميل...' : 'Loading...'}</option>`;
+                
+                const { data, error } = await supabase.from('departments').select('*');
+                
+                if (error) throw error;
+
+                select.innerHTML = `<option value="">${i18n.lang === 'ar' ? 'اختر القسم' : 'Select Department'}</option>`;
+                if (data && data.length > 0) {
+                    data.forEach(d => {
+                        const o = document.createElement('option');
+                        o.value = d.id;
+                        // Attempt to translate name if key exists
+                        const key = d.name.toLowerCase().replace(/ ( [a-z])/g, g => g[1].toUpperCase()).replace(/ /g, '');
+                        o.textContent = i18n.t(key) !== key ? i18n.t(key) : d.name;
+                        select.appendChild(o);
+                    });
+                } else {
+                    select.innerHTML = `<option value="">No departments found</option>`;
+                }
+                
+                i18n.updateDOM();
+            } catch (err) {
+                console.error(err);
+                ui.toast(err.message, 'error');
+            }
+        }
+
+        document.getElementById('regForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('subBtn');
+            ui.setLoading(btn, true);
+
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('pass').value;
+            const meta = {
+                name: document.getElementById('name').value,
+                role: document.getElementById('role').value,
+                department_id: document.getElementById('dept').value
+            };
+
+            const { data, error } = await supabase.auth.signUp({
+                email, password, options: { data: meta }
+            });
+
+            if (error) {
+                console.error('Sign up error:', error);
+                ui.toast(`Registration failed: ${error.message}`, 'error');
+                
+                if (error.message.includes('apiKey')) {
+                    ui.toast('Check your Supabase Key in js/services/supabase.js', 'error');
+                }
+                
+                ui.setLoading(btn, false);
+            } else if (data.user && data.user.identities && data.user.identities.length === 0) {
+                ui.toast('This email is already registered.', 'error');
+                ui.setLoading(btn, false);
+            } else {
+                ui.toast('Registration successful! Check your email if confirmation is required.');
+                setTimeout(() => window.location.href = 'login.html', 3000);
+            }
+        };
+
+        init();
+    </script>
+</body>
+</html>

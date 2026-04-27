@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Akram Academy</title>
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .view-section { display:none; }
+        .view-section.active { display:block; animation:fadeIn .35s ease-out; }
+        @keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+        .modal-bg { display:none; position:fixed; inset:0; background:rgba(15,23,42,.55);
+                    backdrop-filter:blur(4px); align-items:center; justify-content:center; z-index:2000; }
+        .modal-bg.open { display:flex; }
+    </style>
+</head>
+<body class="bg-light">
+<div class="dashboard-layout">
+
+  <aside class="sidebar" id="sidebar">
+    <div class="logo mb-10">
+      <i class="fas fa-user-cog"></i>
+      <span data-i18n="appName">Akram Academy</span>
+    </div>
+    <nav>
+      <a href="#" class="nav-link active" data-view="results">
+        <i class="fas fa-poll-h"></i><span>Exam Results</span>
+      </a>
+      <a href="#" class="nav-link" data-view="students">
+        <i class="fas fa-user-graduate"></i><span>Students</span>
+      </a>
+      <a href="#" class="nav-link" data-view="instructors">
+        <i class="fas fa-chalkboard-teacher"></i><span>Instructors</span>
+      </a>
+      <div style="margin-top:auto;border-top:1px solid var(--border);padding-top:1rem;">
+        <button id="logoutBtn" class="nav-link w-full" style="background:none;border:none;cursor:pointer;color:var(--danger);">
+          <i class="fas fa-sign-out-alt"></i><span data-i18n="logout">Sign Out</span>
+        </button>
+      </div>
+    </nav>
+  </aside>
+
+  <main class="main-content">
+    <header class="top-header">
+      <div class="flex items-center gap-4">
+        <button id="mobileMenuBtn" class="btn btn-outline btn-sm mobile-only">
+          <i class="fas fa-bars"></i>
+        </button>
+        <div>
+          <h1 id="viewTitle" class="text-2xl font-bold">Exam Results</h1>
+          <p id="deptInfo" class="text-sm text-muted"></p>
+        </div>
+      </div>
+      <div class="flex gap-4 items-center">
+        <button id="langToggle" class="btn btn-outline btn-sm" data-i18n="switchLang">العربية</button>
+        <div class="flex items-center gap-3">
+          <div><div id="adminName" class="font-bold">Admin</div>
+               <div class="text-xs text-muted" data-i18n="admin">Administrator</div></div>
+          <div class="w-10 h-10 rounded-full flex items-center justify-center text-white"
+               style="background:var(--primary);"><i class="fas fa-user-cog"></i></div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Stats -->
+    <div class="grid grid-cols-3 gap-6 mb-10">
+      <div class="stat-card">
+        <div class="stat-icon" style="background:rgba(245,158,11,.1);color:var(--warning);">
+          <i class="fas fa-clock"></i></div>
+        <div><div class="text-2xl font-bold" id="statPending">0</div>
+             <div class="text-sm text-muted">Pending Review</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background:rgba(16,185,129,.1);color:var(--success);">
+          <i class="fas fa-check-circle"></i></div>
+        <div><div class="text-2xl font-bold" id="statApproved">0</div>
+             <div class="text-sm text-muted">Approved</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background:rgba(37,99,235,.1);color:var(--primary);">
+          <i class="fas fa-user-graduate"></i></div>
+        <div><div class="text-2xl font-bold" id="statStudents">0</div>
+             <div class="text-sm text-muted">Dept Students</div></div>
+      </div>
+    </div>
+
+    <!-- RESULTS -->
+    <section id="resultsSection" class="view-section active">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-bold">Pending Exam Results</h2>
+        <button class="btn btn-outline btn-sm" onclick="loadResults()">
+          <i class="fas fa-sync-alt"></i> Refresh
+        </button>
+      </div>
+      <div class="glass-card p-0 overflow-hidden">
+        <table class="data-table"><thead><tr>
+          <th>Student</th><th>Device</th><th>Score</th><th>Submitted</th><th>Actions</th>
+        </tr></thead><tbody id="resTable"></tbody></table>
+      </div>
+    </section>
+
+    <!-- STUDENTS -->
+    <section id="studentsSection" class="view-section">
+      <h2 class="text-xl font-bold mb-6">Department Students</h2>
+      <div class="glass-card p-0 overflow-hidden">
+        <table class="data-table"><thead><tr>
+          <th>Name</th><th>Status</th><th>Results Count</th><th>Actions</th>
+        </tr></thead><tbody id="studentTable"></tbody></table>
+      </div>
+    </section>
+
+    <!-- INSTRUCTORS -->
+    <section id="instructorsSection" class="view-section">
+      <h2 class="text-xl font-bold mb-6">Department Instructors</h2>
+      <div class="glass-card p-0 overflow-hidden">
+        <table class="data-table"><thead><tr>
+          <th>Name</th><th>Status</th><th>Actions</th>
+        </tr></thead><tbody id="instructorTable"></tbody></table>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div id="toastContainer" class="toast-container"></div>
+
+<script type="module">
+import i18n from '../js/i18n.js';
+import { routing } from '../js/services/routing.js';
+import { supabase } from '../js/services/supabase.js';
+import { ui } from '../js/services/ui.js';
+
+let adminDept = null;
+
+async function init() {
+  const profile = await routing.checkAccess(['admin']);
+  if (!profile) return;
+  adminDept = profile.department_id;
+  document.getElementById('adminName').textContent = profile.name || 'Admin';
+
+  // Get dept name
+  const { data: dept } = await supabase.from('departments').select('name').eq('id', adminDept).single();
+  document.getElementById('deptInfo').textContent = dept?.name || 'Department';
+
+  await Promise.all([loadResults(), loadStudents(), loadInstructors(), loadStats()]);
+  setupNav();
+  setupMobileMenu();
+  i18n.updateDOM();
+}
+
+// Setup Mobile Menu
+function setupMobileMenu() {
+  const btn = document.getElementById('mobileMenuBtn');
+  const sidebar = document.getElementById('sidebar');
+  if(btn && sidebar) {
+    btn.onclick = () => sidebar.classList.toggle('open');
+    document.querySelectorAll('.nav-link').forEach(l => {
+      l.addEventListener('click', () => {
+        if (window.innerWidth <= 768) sidebar.classList.remove('open');
+      });
+    });
+  }
+}
+
+async function loadStats() {
+  const [{ count: pending }, { count: approved }, { count: students }] = await Promise.all([
+    supabase.from('results').select('*',{count:'exact',head:true})
+      .eq('status','pending_review')
+      .in('user_id', await getDeptUserIds()),
+    supabase.from('results').select('*',{count:'exact',head:true})
+      .eq('status','approved')
+      .in('user_id', await getDeptUserIds()),
+    supabase.from('profiles').select('*',{count:'exact',head:true})
+      .eq('department_id', adminDept).eq('role','student'),
+  ]);
+  document.getElementById('statPending').textContent  = pending  || 0;
+  document.getElementById('statApproved').textContent = approved || 0;
+  document.getElementById('statStudents').textContent = students || 0;
+}
+
+async function getDeptUserIds() {
+  const { data } = await supabase.from('profiles').select('id').eq('department_id', adminDept);
+  return (data || []).map(p => p.id);
+}
+
+window.loadResults = async function() {
+  const userIds = await getDeptUserIds();
+  const { data, error } = await supabase.from('results')
+    .select('*, profiles(name), exams(devices(name))')
+    .eq('status','pending_review')
+    .in('user_id', userIds.length ? userIds : ['none'])
+    .order('submitted_at', {ascending:false});
+
+  const tbody = document.getElementById('resTable');
+  tbody.innerHTML = '';
+  if (error || !data?.length) {
+    tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted p-8">No pending results 🎉</td></tr>';
+    return;
+  }
+  data.forEach(r => {
+    const tr = document.createElement('tr');
+    const date = r.submitted_at ? new Date(r.submitted_at).toLocaleDateString() : 'N/A';
+    const scoreColor = r.score >= 60 ? 'var(--success)' : 'var(--danger)';
+    tr.innerHTML = `
+      <td class="font-medium">${r.profiles?.name || 'Unknown'}</td>
+      <td>${r.exams?.devices?.name || 'N/A'}</td>
+      <td><span class="font-bold" style="color:${scoreColor}">${r.score}%</span></td>
+      <td class="text-muted" style="font-size:.85rem">${date}</td>
+      <td class="flex gap-2">
+        <button class="btn btn-primary btn-sm" onclick="approveRes('${r.id}')">
+          <i class="fas fa-check"></i> Approve
+        </button>
+        <button class="btn btn-outline btn-sm" style="color:var(--danger)" onclick="rejectRes('${r.id}')">
+          <i class="fas fa-times"></i> Reject
+        </button>
+      </td>`;
+    tbody.appendChild(tr);
+  });
+};
+
+async function loadStudents() {
+  const { data } = await supabase.from('profiles')
+    .select('*').eq('department_id', adminDept).eq('role','student');
+  const tbody = document.getElementById('studentTable');
+  tbody.innerHTML = '';
+  (data || []).forEach(s => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="font-medium">${s.name}</td>
+      <td><span class="badge ${s.status}">${s.status}</span></td>
+      <td>—</td>
+      <td>
+        ${s.status === 'pending' ? `<button class="btn btn-primary btn-sm" onclick="approveStudent('${s.id}')"><i class="fas fa-check"></i> Approve</button>` : ''}
+      </td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+async function loadInstructors() {
+  const { data } = await supabase.from('profiles')
+    .select('*').eq('department_id', adminDept).eq('role','instructor');
+  const tbody = document.getElementById('instructorTable');
+  tbody.innerHTML = '';
+  (data || []).forEach(ins => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="font-medium">${ins.name}</td>
+      <td><span class="badge ${ins.status}">${ins.status}</span></td>
+      <td>${ins.status === 'pending' ? `<button class="btn btn-primary btn-sm" onclick="approveStudent('${ins.id}')"><i class="fas fa-check"></i> Approve</button>` : '—'}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+window.approveRes = async (id) => {
+  const { error } = await supabase.from('results')
+    .update({ status:'approved', reviewed_at: new Date().toISOString() }).eq('id', id);
+  if (error) ui.toast(error.message,'error');
+  else { ui.toast('Result approved! ✅'); loadResults(); loadStats(); }
+};
+
+window.rejectRes = async (id) => {
+  const { error } = await supabase.from('results')
+    .update({ status:'rejected', reviewed_at: new Date().toISOString() }).eq('id', id);
+  if (error) ui.toast(error.message,'error');
+  else { ui.toast('Result rejected.','error'); loadResults(); loadStats(); }
+};
+
+window.approveStudent = async (id) => {
+  const { error } = await supabase.from('profiles').update({ status:'approved' }).eq('id', id);
+  if (error) ui.toast(error.message,'error');
+  else { ui.toast('Approved!'); loadStudents(); loadInstructors(); loadStats(); }
+};
+
+const viewTitles = { results:'Exam Results', students:'Department Students', instructors:'Department Instructors' };
+function setupNav() {
+  document.querySelectorAll('.nav-link[data-view]').forEach(link => {
+    link.onclick = () => {
+      document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+      document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+      link.classList.add('active');
+      document.getElementById(link.dataset.view + 'Section').classList.add('active');
+      document.getElementById('viewTitle').textContent = viewTitles[link.dataset.view] || '';
+    };
+  });
+}
+
+document.getElementById('logoutBtn').onclick = () => routing.logout();
+document.getElementById('langToggle').onclick = () => i18n.toggle();
+init();
+</script>
+</body>
+</html>

@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="labRoom">Lab Room - Smart Medical Platform</title>
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <style>
+        .lab-header { background: #0f172a; padding: 6rem 2rem 4rem; color: white; text-align: center; }
+        .lab-tabs { display: flex; justify-content: center; gap: 8px; margin-top: -24px; }
+        .lab-tab { padding: 12px 24px; background: white; border: 1px solid var(--border); border-radius: 12px; cursor: pointer; font-weight: 600; box-shadow: var(--shadow-sm); transition: 0.3s; }
+        .lab-tab.active { background: var(--primary); color: white; border-color: var(--primary); }
+        .content-panel { display: none; padding: 3rem 0; }
+        .content-panel.active { display: block; }
+        
+        /* Simulator UI */
+        .sim-container { background: #1e293b; border-radius: 20px; padding: 2rem; color: #38bdf8; font-family: monospace; border: 8px solid #334155; }
+        .sim-display { background: #020617; height: 200px; border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; border: 2px solid #334155; overflow-y: auto; }
+        .sim-controls { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+        
+        /* Exam UI */
+        .q-card { background: white; padding: 2.5rem; border-radius: 20px; border: 1px solid var(--border); margin-bottom: 2rem; }
+        .opt-btn { width: 100%; text-align: left; padding: 1rem; border: 1px solid var(--border); border-radius: 10px; margin-top: 10px; cursor: pointer; background: transparent; transition: 0.2s; }
+        [dir="rtl"] .opt-btn { text-align: right; }
+        .opt-btn.selected { border-color: var(--primary); background: #f0f9ff; font-weight: 600; }
+    </style>
+</head>
+<body class="bg-light">
+    <nav class="glass-nav px-8 py-4 flex justify-between items-center fixed t-0 l-0 r-0 z-100">
+        <a href="../dashboard/student.html" class="btn btn-outline btn-sm">← <span data-i18n="backToDash">Dashboard</span></a>
+        <div class="font-bold text-lg" id="deviceNameHeader">Device</div>
+        <div id="examTimer" class="font-bold text-danger bg-red-50 px-4 py-1 rounded-lg" style="display:none">--:--</div>
+    </nav>
+
+    <header class="lab-header">
+        <h1 id="deviceTitle">Device</h1>
+        <p id="deviceSub" class="text-slate-400"></p>
+    </header>
+
+    <div class="lab-tabs">
+        <div class="lab-tab active" data-tab="learning" data-i18n="learning">Learning</div>
+        <div class="lab-tab" data-tab="simulator" data-i18n="simulator">Simulator</div>
+        <div class="lab-tab" data-tab="ai" data-i18n="assistant">AI Assistant</div>
+        <div class="lab-tab" data-tab="exam" data-i18n="certification">Certification</div>
+    </div>
+
+    <main class="container">
+        <section id="learning" class="content-panel active">
+            <div id="materialsList" class="grid gap-8"></div>
+        </section>
+
+        <section id="simulator" class="content-panel">
+            <div class="sim-container">
+                <div class="sim-display" id="simDisplay">> READY...</div>
+                <div class="sim-controls">
+                    <button class="btn btn-primary" onclick="simStep('load')">LOAD</button>
+                    <button class="btn btn-primary" onclick="simStep('calibrate')">CALIBRATE</button>
+                    <button class="btn btn-primary" onclick="simStep('run')">RUN</button>
+                </div>
+            </div>
+        </section>
+
+        <section id="ai" class="content-panel">
+            <div class="glass-card max-w-xl mx-auto">
+                <div id="chatBox" class="h-64 overflow-y-auto mb-4 p-4 bg-slate-50 rounded"></div>
+                <div class="flex gap-2">
+                    <input type="text" id="chatInput" class="form-input" data-i18n-placeholder="aiHelp">
+                    <button id="sendChat" class="btn btn-primary" data-i18n="send">Send</button>
+                </div>
+            </div>
+        </section>
+
+        <section id="exam" class="content-panel">
+            <div id="examIntro" class="text-center glass-card max-w-xl mx-auto">
+                <h2 class="mb-4" data-i18n="startExam">Start Certification</h2>
+                <button class="btn btn-primary py-4 px-12" id="startExamBtn" data-i18n="begin">Begin Test</button>
+            </div>
+            <div id="examEngine" style="display:none" class="max-w-2xl mx-auto">
+                <div id="questionsList"></div>
+                <button class="btn btn-primary w-full py-4 mt-8" id="submitExamBtn" data-i18n="submitExam">Submit</button>
+            </div>
+        </section>
+    </main>
+
+    <div id="toastContainer" class="toast-container"></div>
+
+    <script type="module">
+        import i18n from '../js/i18n.js';
+        import { routing } from '../js/services/routing.js';
+        import { supabase } from '../js/services/supabase.js';
+        import { ui } from '../js/services/ui.js';
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const deviceId = urlParams.get('id');
+        let currentProfile = null;
+        let examData = null;
+
+        async function init() {
+            currentProfile = await routing.checkAccess(['student']);
+            if (!currentProfile) return;
+
+            loadData();
+            i18n.updateDOM();
+        }
+
+        async function loadData() {
+            const { data: dev } = await supabase.from('devices').select('*').eq('id', deviceId).single();
+            if (dev) {
+                document.getElementById('deviceNameHeader').textContent = dev.name;
+                document.getElementById('deviceTitle').textContent = dev.name;
+            }
+
+            const { data: mats } = await supabase.from('materials').select('*').eq('device_id', deviceId);
+            const list = document.getElementById('materialsList');
+            mats.forEach(m => {
+                const card = document.createElement('div');
+                card.className = 'glass-card';
+                if (m.type === 'pdf') {
+                    card.innerHTML = `<iframe src="${m.content_url}" class="w-full h-128 mt-4 rounded border-none"></iframe>`;
+                } else if (m.type === 'video') {
+                    const vid = m.content_url.split('v=')[1];
+                    card.innerHTML = `<iframe src="https://www.youtube.com/embed/${vid}" class="w-full aspect-video mt-4 rounded border-none"></iframe>`;
+                } else {
+                    card.innerHTML = `<div class="prose mt-4">${m.content_url}</div>`;
+                }
+                list.appendChild(card);
+            });
+        }
+
+        // Simulator Logic
+        let simStatus = 'IDLE';
+        window.simStep = (step) => {
+            const disp = document.getElementById('simDisplay');
+            
+            // Random Error Simulation (20% chance)
+            if (Math.random() < 0.2) {
+                disp.innerHTML += `<br><span class="text-danger">> ERROR: ${step.toUpperCase()} FAILED [Sensor Timeout]</span>`;
+                disp.scrollTop = disp.scrollHeight;
+                ui.toast('Simulation Error - System Reset Required', 'error');
+                return;
+            }
+
+            disp.innerHTML += `<br>> ${step.toUpperCase()}ING... [DONE]`;
+            disp.scrollTop = disp.scrollHeight;
+            ui.toast(`${step.charAt(0).toUpperCase() + step.slice(1)} Success`);
+        };
+
+        // Tabs
+        document.querySelectorAll('.lab-tab').forEach(t => t.onclick = () => {
+            document.querySelectorAll('.lab-tab').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.content-panel').forEach(p => p.classList.remove('active'));
+            t.classList.add('active');
+            document.getElementById(t.dataset.tab).classList.add('active');
+        });
+
+        // Exam
+        document.getElementById('startExamBtn').onclick = async () => {
+            const { data: exam, error } = await supabase.from('exams').select('*, questions(*)').eq('device_id', deviceId).single();
+            if (error || !exam) { ui.toast('No exam available', 'error'); return; }
+            examData = exam;
+
+            document.getElementById('examIntro').style.display = 'none';
+            document.getElementById('examEngine').style.display = 'block';
+            document.getElementById('examTimer').style.display = 'block';
+
+            const container = document.getElementById('questionsList');
+            exam.questions.forEach((q, i) => {
+                const card = document.createElement('div');
+                card.className = 'q-card';
+                card.dataset.qid = q.id;
+                card.innerHTML = `<p class="font-bold">${i+1}. ${q.question}</p>`;
+                
+                Object.keys(q.options).forEach(k => {
+                    const b = document.createElement('button');
+                    b.className = 'opt-btn';
+                    b.onclick = () => {
+                        card.querySelectorAll('.opt-btn').forEach(btn => btn.classList.remove('selected'));
+                        b.classList.add('selected');
+                        card.dataset.choice = k;
+                    };
+                    b.textContent = q.options[k];
+                    card.appendChild(b);
+                });
+                container.appendChild(card);
+            });
+        };
+
+        document.getElementById('submitExamBtn').onclick = async () => {
+            ui.setLoading(document.getElementById('submitExamBtn'), true);
+            const cards = document.querySelectorAll('.q-card');
+            let studentAnswers = {};
+            cards.forEach(c => {
+                if (c.dataset.choice) {
+                    studentAnswers[c.dataset.qid] = c.dataset.choice;
+                }
+            });
+
+            const { data, error } = await supabase.rpc('submit_exam', {
+                p_exam_id: examData.id,
+                p_answers: studentAnswers
+            });
+
+            if (error) ui.toast(error.message, 'error');
+            else {
+                ui.toast('Submitted for review! Score calculated securely.');
+                setTimeout(() => window.location.href = '../dashboard/student.html', 2000);
+            }
+        };
+
+        // Chat AI Mock
+        document.getElementById('sendChat').onclick = () => {
+            const i = document.getElementById('chatInput');
+            const b = document.getElementById('chatBox');
+            if (!i.value.trim()) return;
+
+            const userMsg = document.createElement('div');
+            userMsg.className = 'text-right mb-4';
+            userMsg.innerHTML = `<span class="bg-primary text-white p-2 rounded-lg inline-block">${i.value}</span>`;
+            b.appendChild(userMsg);
+
+            const req = i.value; 
+            i.value = '';
+            b.scrollTop = b.scrollHeight;
+
+            setTimeout(() => {
+                const aiMsg = document.createElement('div');
+                aiMsg.className = 'mb-4';
+                aiMsg.innerHTML = `<span class="bg-white border p-2 rounded-lg inline-block max-w-xs shadow-sm text-sm">
+                    <strong>Medical Assistant:</strong><br>
+                    ${i18n.lang === 'ar' ? 'بناءً على سؤالك حول "' + req + '"، يرجى مراجعة الخطوات 3 و 4 في دليل التشغيل.' : 'Based on your inquiry about "' + req + '", please refer to steps 3 and 4 in the operation manual.'}
+                </span>`;
+                b.appendChild(aiMsg);
+                b.scrollTop = b.scrollHeight;
+            }, 800);
+        };
+
+        init();
+    </script>
+</body>
+</html>

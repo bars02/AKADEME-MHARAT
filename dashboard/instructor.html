@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instructor - Akram Academy</title>
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .view-section { display: none; }
+        .view-section.active { display: block; animation: fadeIn 0.35s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .modal-bg { display: none; position: fixed; inset: 0; background: rgba(15,23,42,0.55); backdrop-filter: blur(4px); align-items: center; justify-content: center; z-index: 2000; }
+        .modal-bg.open { display: flex; }
+        .device-card { background: white; padding: 1.5rem; border-radius: 16px; border: 1px solid var(--border); transition: var(--transition); display: flex; flex-direction: column; gap: 1rem; }
+        .device-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-md); border-color: var(--primary); }
+    </style>
+</head>
+<body class="bg-light">
+    <div class="dashboard-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="logo mb-10">
+                <i class="fas fa-chalkboard-teacher"></i>
+                <span data-i18n="appName">Akram Academy</span>
+            </div>
+            
+            <nav>
+                <a href="#" class="nav-link active" data-view="overview">
+                    <i class="fas fa-chart-line"></i><span data-i18n="overview">Overview</span>
+                </a>
+                <a href="#" class="nav-link" data-view="devices">
+                    <i class="fas fa-microscope"></i><span data-i18n="manageDevices">Devices</span>
+                </a>
+                <a href="#" class="nav-link" data-view="materials">
+                    <i class="fas fa-book-open"></i><span data-i18n="learningMaterials">Materials</span>
+                </a>
+                <a href="#" class="nav-link" data-view="exams">
+                    <i class="fas fa-file-signature"></i><span data-i18n="examsAndQuizzes">Exams</span>
+                </a>
+                <a href="#" class="nav-link" data-view="results">
+                    <i class="fas fa-poll"></i><span data-i18n="studentResults">Results</span>
+                </a>
+                <div style="margin-top: 2rem; border-top: 1px solid var(--border); padding-top: 1rem;">
+                    <button id="logoutBtn" class="nav-link w-full" style="background: none; border: none; cursor: pointer; color: var(--danger);">
+                        <i class="fas fa-sign-out-alt"></i><span data-i18n="logout">Sign Out</span>
+                    </button>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-header">
+                <div class="flex items-center gap-4">
+                    <button id="mobileMenuBtn" class="btn btn-outline btn-sm mobile-only">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <div>
+                        <h1 id="viewTitle" class="text-2xl font-bold" data-i18n="instructorDashboard">Instructor Dashboard</h1>
+                        <p class="text-sm text-muted" id="deptInfo">Loading Department...</p>
+                    </div>
+                </div>
+                <div class="flex gap-4 items-center">
+                    <button id="langToggle" class="btn btn-outline btn-sm" data-i18n="switchLang">العربية</button>
+                    <div class="flex items-center gap-3">
+                        <div class="text-right hidden-mobile">
+                            <div id="instructorName" class="font-bold">Instructor Name</div>
+                            <div class="text-xs text-muted" data-i18n="instructor">Instructor</div>
+                        </div>
+                        <div class="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center font-bold">
+                            <i class="fas fa-user-tie"></i>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Overview -->
+            <section id="overviewSection" class="view-section active">
+                <div class="grid grid-cols-4 gap-6 mb-12">
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: rgba(37, 99, 235, 0.1); color: var(--primary);"><i class="fas fa-laptop-medical"></i></div>
+                        <div><div class="text-2xl font-bold" id="statDevices">0</div><div class="text-sm text-muted">Devices</div></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: rgba(16, 185, 129, 0.1); color: var(--success);"><i class="fas fa-file-alt"></i></div>
+                        <div><div class="text-2xl font-bold" id="statMaterials">0</div><div class="text-sm text-muted">Materials</div></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: rgba(245, 158, 11, 0.1); color: var(--warning);"><i class="fas fa-user-graduate"></i></div>
+                        <div><div class="text-2xl font-bold" id="statStudents">0</div><div class="text-sm text-muted">Students</div></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: rgba(139, 92, 246, 0.1); color: #8b5cf6;"><i class="fas fa-check-double"></i></div>
+                        <div><div class="text-2xl font-bold" id="statExams">0</div><div class="text-sm text-muted">Exams Taken</div></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Devices -->
+            <section id="devicesSection" class="view-section">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-bold" data-i18n="manageDevices">Device Management</h2>
+                    <button class="btn btn-primary" onclick="openModal('deviceModal')">
+                        <i class="fas fa-plus"></i> <span data-i18n="addDevice">Add Device</span>
+                    </button>
+                </div>
+                <div id="deviceList" class="grid grid-cols-3 gap-6"></div>
+            </section>
+
+            <!-- Materials -->
+            <section id="materialsSection" class="view-section">
+                <div class="grid grid-cols-3 gap-8">
+                    <div class="col-span-1">
+                        <div class="glass-card">
+                            <h3 class="mb-6" data-i18n="uploadMaterials">Upload Materials</h3>
+                            <form id="materialForm" class="flex flex-col gap-4">
+                                <div class="form-group mb-0">
+                                    <label>Select Device</label>
+                                    <select id="matDevice" class="form-input" required></select>
+                                </div>
+                                <div class="form-group mb-0">
+                                    <label>Type</label>
+                                    <select id="matType" class="form-input" required>
+                                        <option value="pdf">📄 PDF Document</option>
+                                        <option value="video">🎥 Video URL</option>
+                                        <option value="image">🖼️ Image</option>
+                                        <option value="file">📁 Attached File</option>
+                                        <option value="model3d">📦 3D Model</option>
+                                        <option value="text">✍️ Rich Text</option>
+                                    </select>
+                                </div>
+                                <div class="form-group mb-0">
+                                    <label>Title</label>
+                                    <input type="text" id="matTitle" class="form-input" required>
+                                </div>
+                                <div class="form-group mb-0">
+                                    <label>Upload File (or enter text/URL)</label>
+                                    <input type="file" id="matFile" class="form-input mb-2">
+                                    <textarea id="matContent" class="form-input" rows="2" placeholder="Or enter URL/text if not uploading a file..."></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-primary w-full" id="uploadBtn">Publish</button>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="col-span-2">
+                        <div class="glass-card p-0 overflow-hidden" style="overflow-x:auto;">
+                            <table class="data-table">
+                                <thead>
+                                    <tr><th>Title</th><th>Device</th><th>Type</th><th>Actions</th></tr>
+                                </thead>
+                                <tbody id="materialTable"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Exams -->
+            <section id="examsSection" class="view-section">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-bold">Exam Builder</h2>
+                </div>
+                <div class="grid grid-cols-3 gap-8">
+                    <div class="col-span-1 glass-card" id="examDeviceList">
+                        <h3 class="mb-4">Select Device</h3>
+                        <!-- List of devices to create exams for -->
+                    </div>
+                    <div class="col-span-2 glass-card" id="examEditor" style="display:none;">
+                        <h3 class="mb-4 text-primary" id="examEditorTitle">Editing Exam</h3>
+                        <div class="flex gap-4 mb-6">
+                            <div class="flex-1 form-group mb-0">
+                                <label>Exam Title</label>
+                                <input type="text" id="examTitle" class="form-input" value="Certification Exam">
+                            </div>
+                            <div class="form-group mb-0" style="width: 150px;">
+                                <label>Duration (mins)</label>
+                                <input type="number" id="examDuration" class="form-input" value="30">
+                            </div>
+                            <div class="flex items-end">
+                                <button class="btn btn-primary" id="saveExamSettingsBtn">Save Settings</button>
+                            </div>
+                        </div>
+                        <hr class="mb-6" style="border-color: var(--border);">
+                        <div class="flex justify-between items-center mb-4">
+                            <h4 class="font-bold">Questions</h4>
+                            <button class="btn btn-outline btn-sm" onclick="openModal('questionModal')"><i class="fas fa-plus"></i> Add Question</button>
+                        </div>
+                        <div id="questionsList" class="flex flex-col gap-4"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Results -->
+            <section id="resultsSection" class="view-section">
+                <h2 class="text-xl font-bold mb-6">Student Results</h2>
+                <div class="glass-card p-0 overflow-hidden" style="overflow-x:auto;">
+                    <table class="data-table">
+                        <thead>
+                            <tr><th>Student</th><th>Exam</th><th>Score</th><th>Status</th><th>Actions</th></tr>
+                        </thead>
+                        <tbody id="resultsTable"></tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <div id="deviceModal" class="modal-bg">
+        <div class="modal" style="max-width:400px; width:100%; padding:2rem; background:white; border-radius:16px;">
+            <h3 class="mb-4">New Device</h3>
+            <div class="form-group mb-4"><label>Name</label><input type="text" id="newDevName" class="form-input"></div>
+            <div class="form-group mb-6"><label>Description</label><textarea id="newDevDesc" class="form-input" rows="2"></textarea></div>
+            <div class="flex gap-4">
+                <button class="btn btn-outline flex-1" onclick="closeModal('deviceModal')">Cancel</button>
+                <button class="btn btn-primary flex-1" id="saveDevBtn">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="questionModal" class="modal-bg">
+        <div class="modal" style="max-width:500px; width:100%; padding:2rem; background:white; border-radius:16px;">
+            <h3 class="mb-4">Add Question</h3>
+            <div class="form-group mb-4"><label>Question Text</label><input type="text" id="qText" class="form-input"></div>
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <div class="form-group mb-0"><label>Option A</label><input type="text" id="optA" class="form-input"></div>
+                <div class="form-group mb-0"><label>Option B</label><input type="text" id="optB" class="form-input"></div>
+                <div class="form-group mb-0"><label>Option C</label><input type="text" id="optC" class="form-input"></div>
+                <div class="form-group mb-0"><label>Option D</label><input type="text" id="optD" class="form-input"></div>
+            </div>
+            <div class="form-group mb-6"><label>Correct Answer</label>
+                <select id="qCorrect" class="form-input">
+                    <option value="a">Option A</option><option value="b">Option B</option>
+                    <option value="c">Option C</option><option value="d">Option D</option>
+                </select>
+            </div>
+            <div class="flex gap-4">
+                <button class="btn btn-outline flex-1" onclick="closeModal('questionModal')">Cancel</button>
+                <button class="btn btn-primary flex-1" id="saveQuestionBtn">Save Question</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toastContainer" class="toast-container"></div>
+
+    <script type="module">
+        import i18n from '../js/i18n.js';
+        import { routing } from '../js/services/routing.js';
+        import { supabase } from '../js/services/supabase.js';
+        import { ui } from '../js/services/ui.js';
+
+        let currentDept = null;
+        let currentExamId = null;
+
+        async function init() {
+            const profile = await routing.checkAccess(['instructor']);
+            if (!profile) return;
+            currentDept = profile.department_id;
+            document.getElementById('instructorName').textContent = profile.name || 'Instructor';
+
+            const { data: dept } = await supabase.from('departments').select('name').eq('id', currentDept).single();
+            document.getElementById('deptInfo').textContent = dept?.name || 'Department';
+
+            setupNav();
+            setupMobileMenu();
+            await Promise.all([loadStats(), loadDevices(), loadMaterials(), loadResults()]);
+            i18n.updateDOM();
+        }
+
+        // Setup Mobile Menu
+        function setupMobileMenu() {
+            const btn = document.getElementById('mobileMenuBtn');
+            const sidebar = document.getElementById('sidebar');
+            btn.onclick = () => sidebar.classList.toggle('open');
+            document.querySelectorAll('.nav-link').forEach(l => {
+                l.addEventListener('click', () => {
+                    if (window.innerWidth <= 768) sidebar.classList.remove('open');
+                });
+            });
+        }
+
+        function setupNav() {
+            document.querySelectorAll('.nav-link[data-view]').forEach(link => {
+                link.onclick = () => {
+                    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+                    document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+                    link.classList.add('active');
+                    document.getElementById(link.dataset.view + 'Section').classList.add('active');
+                };
+            });
+        }
+
+        window.openModal = (id) => document.getElementById(id).classList.add('open');
+        window.closeModal = (id) => document.getElementById(id).classList.remove('open');
+
+        async function loadStats() {
+            // Using aggregate counts
+            const [{ count: devs }, { count: mats }, { count: stus }, { count: res }] = await Promise.all([
+                supabase.from('devices').select('*', {count:'exact',head:true}).eq('department_id', currentDept),
+                supabase.from('materials').select('*, devices!inner(*)').eq('devices.department_id', currentDept),
+                supabase.from('profiles').select('*', {count:'exact',head:true}).eq('department_id', currentDept).eq('role', 'student'),
+                supabase.from('results').select('*, exams!inner(devices!inner(*))').eq('exams.devices.department_id', currentDept)
+            ]);
+            document.getElementById('statDevices').textContent = devs || 0;
+            document.getElementById('statMaterials').textContent = mats || 0; // Wait, exact count on inner join might fail, fallback to 0
+            document.getElementById('statStudents').textContent = stus || 0;
+            document.getElementById('statExams').textContent = res || 0;
+        }
+
+        async function loadDevices() {
+            const { data } = await supabase.from('devices').select('*').eq('department_id', currentDept);
+            const list = document.getElementById('deviceList');
+            const examList = document.getElementById('examDeviceList');
+            const matSel = document.getElementById('matDevice');
+            
+            list.innerHTML = '';
+            matSel.innerHTML = '<option value="">-- Select Device --</option>';
+            examList.innerHTML = '<h3 class="mb-4">Select Device</h3>';
+
+            (data || []).forEach(d => {
+                // Device Card
+                const card = document.createElement('div');
+                card.className = 'device-card';
+                card.innerHTML = `<h4 class="font-bold text-primary">${d.name}</h4><p class="text-sm text-muted">${d.description || ''}</p>`;
+                list.appendChild(card);
+
+                // Material Select
+                const opt = document.createElement('option');
+                opt.value = d.id; opt.textContent = d.name;
+                matSel.appendChild(opt);
+
+                // Exam List
+                const exBtn = document.createElement('button');
+                exBtn.className = 'btn btn-outline w-full mb-2 justify-start';
+                exBtn.textContent = d.name;
+                exBtn.onclick = () => openExamEditor(d.id, d.name);
+                examList.appendChild(exBtn);
+            });
+        }
+
+        document.getElementById('saveDevBtn').onclick = async () => {
+            const name = document.getElementById('newDevName').value;
+            const desc = document.getElementById('newDevDesc').value;
+            const { error } = await supabase.from('devices').insert({ department_id: currentDept, name, description: desc });
+            if (error) ui.toast(error.message, 'error');
+            else { ui.toast('Device added!'); closeModal('deviceModal'); loadDevices(); loadStats(); }
+        };
+
+        // Materials
+        async function loadMaterials() {
+            const { data } = await supabase.from('materials').select('*, devices!inner(name)').eq('devices.department_id', currentDept);
+            const tbody = document.getElementById('materialTable');
+            tbody.innerHTML = '';
+            (data || []).forEach(m => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="font-medium">${m.title}</td>
+                    <td>${m.devices.name}</td>
+                    <td><span class="badge ${m.type}">${m.type}</span></td>
+                    <td><button class="btn btn-outline btn-sm text-danger" onclick="delMat('${m.id}')"><i class="fas fa-trash"></i></button></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        document.getElementById('materialForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('uploadBtn');
+            ui.setLoading(btn, true);
+
+            try {
+                let contentUrl = document.getElementById('matContent').value;
+                const fileInput = document.getElementById('matFile');
+                
+                // If a file is selected, upload it to Supabase Storage
+                if (fileInput.files.length > 0) {
+                    const file = fileInput.files[0];
+                    const fileExt = file.name.split('.').pop();
+                    const fileName = `${Math.random()}.${fileExt}`;
+                    const filePath = `uploads/${fileName}`;
+
+                    const { error: uploadError, data } = await supabase.storage
+                        .from('materials')
+                        .upload(filePath, file);
+
+                    if (uploadError) throw uploadError;
+
+                    // Get public URL
+                    const { data: publicData } = supabase.storage
+                        .from('materials')
+                        .getPublicUrl(filePath);
+                    
+                    contentUrl = publicData.publicUrl;
+                }
+
+                if (!contentUrl) {
+                    throw new Error('Please upload a file or enter a URL/text.');
+                }
+
+                const { error } = await supabase.from('materials').insert({
+                    device_id: document.getElementById('matDevice').value,
+                    type: document.getElementById('matType').value,
+                    title: document.getElementById('matTitle').value,
+                    content_url: contentUrl
+                });
+
+                if (error) throw error;
+                
+                ui.toast('Material published!'); 
+                e.target.reset(); 
+                loadMaterials(); 
+                loadStats();
+            } catch (err) {
+                ui.toast(err.message, 'error');
+            } finally {
+                ui.setLoading(btn, false, 'Publish');
+            }
+        };
+
+        window.delMat = async (id) => {
+            if (!confirm('Delete material?')) return;
+            await supabase.from('materials').delete().eq('id', id);
+            loadMaterials();
+        };
+
+        // Exams
+        async function openExamEditor(deviceId, deviceName) {
+            document.getElementById('examEditor').style.display = 'block';
+            document.getElementById('examEditorTitle').textContent = `Editing Exam: ${deviceName}`;
+            
+            // Check if exam exists
+            let { data: exam } = await supabase.from('exams').select('*').eq('device_id', deviceId).single();
+            if (!exam) {
+                // Create default exam
+                const { data: newExam } = await supabase.from('exams').insert({ device_id: deviceId }).select().single();
+                exam = newExam;
+            }
+            currentExamId = exam.id;
+            document.getElementById('examTitle').value = exam.title;
+            document.getElementById('examDuration').value = exam.duration;
+            
+            loadQuestions();
+        }
+
+        document.getElementById('saveExamSettingsBtn').onclick = async () => {
+            const title = document.getElementById('examTitle').value;
+            const duration = document.getElementById('examDuration').value;
+            const { error } = await supabase.from('exams').update({ title, duration }).eq('id', currentExamId);
+            if (error) ui.toast(error.message, 'error');
+            else ui.toast('Settings saved!');
+        };
+
+        async function loadQuestions() {
+            const { data } = await supabase.from('questions').select('*').eq('exam_id', currentExamId).order('created_at');
+            const list = document.getElementById('questionsList');
+            list.innerHTML = '';
+            if(!data || data.length === 0) {
+                list.innerHTML = '<p class="text-muted">No questions yet. Add one!</p>';
+                return;
+            }
+            data.forEach((q, i) => {
+                const div = document.createElement('div');
+                div.className = 'p-4 border rounded relative';
+                div.innerHTML = `
+                    <p class="font-bold mb-2">${i+1}. ${q.question}</p>
+                    <div class="grid grid-cols-2 gap-2 text-sm">
+                        <div class="${q.correct_answer==='a'?'text-success font-bold':''}"><span class="text-muted">A:</span> ${q.options.a}</div>
+                        <div class="${q.correct_answer==='b'?'text-success font-bold':''}"><span class="text-muted">B:</span> ${q.options.b}</div>
+                        <div class="${q.correct_answer==='c'?'text-success font-bold':''}"><span class="text-muted">C:</span> ${q.options.c}</div>
+                        <div class="${q.correct_answer==='d'?'text-success font-bold':''}"><span class="text-muted">D:</span> ${q.options.d}</div>
+                    </div>
+                    <button class="btn btn-sm btn-outline text-danger" style="position:absolute; top:1rem; right:1rem;" onclick="delQ('${q.id}')"><i class="fas fa-trash"></i></button>
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        document.getElementById('saveQuestionBtn').onclick = async () => {
+            const q = {
+                exam_id: currentExamId,
+                question: document.getElementById('qText').value,
+                options: {
+                    a: document.getElementById('optA').value,
+                    b: document.getElementById('optB').value,
+                    c: document.getElementById('optC').value,
+                    d: document.getElementById('optD').value
+                },
+                correct_answer: document.getElementById('qCorrect').value
+            };
+            const { error } = await supabase.from('questions').insert(q);
+            if (error) ui.toast(error.message, 'error');
+            else { ui.toast('Question added!'); closeModal('questionModal'); loadQuestions(); }
+        };
+
+        window.delQ = async (id) => {
+            await supabase.from('questions').delete().eq('id', id);
+            loadQuestions();
+        };
+
+        // Results
+        async function loadResults() {
+            const { data } = await supabase.from('results').select('*, profiles!inner(name, department_id), exams!inner(title, devices!inner(name))').eq('profiles.department_id', currentDept);
+            const tbody = document.getElementById('resultsTable');
+            tbody.innerHTML = '';
+            (data || []).forEach(r => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="font-medium">${r.profiles.name}</td>
+                    <td>${r.exams.devices.name}</td>
+                    <td class="font-bold ${r.score >= 60 ? 'text-success' : 'text-danger'}">${r.score}%</td>
+                    <td><span class="badge ${r.status}">${r.status}</span></td>
+                    <td>
+                        ${r.status === 'pending_review' ? `<button class="btn btn-primary btn-sm" onclick="approveRes('${r.id}')">Approve</button>` : '—'}
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        window.approveRes = async (id) => {
+            await supabase.from('results').update({ status: 'approved' }).eq('id', id);
+            ui.toast('Approved'); loadResults(); loadStats();
+        };
+
+        document.getElementById('logoutBtn').onclick = () => routing.logout();
+        document.getElementById('langToggle').onclick = () => i18n.toggle();
+        init();
+    </script>
+</body>
+</html>
