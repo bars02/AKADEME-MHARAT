@@ -3,91 +3,156 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title data-i18n="appName">Akram Academy</title>
+    <title>Maharat Academy - Professional Medical Training</title>
     <link rel="stylesheet" href="css/main.css">
     <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         .hero {
-            padding: 10rem 2rem 6rem;
-            background: radial-gradient(circle at top right, rgba(14, 165, 233, 0.1), transparent),
-                        radial-gradient(circle at bottom left, rgba(37, 99, 235, 0.05), transparent);
+            padding: 12rem 2rem 8rem;
+            background: 
+                radial-gradient(circle at 10% 20%, rgba(37, 99, 235, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(14, 165, 233, 0.08) 0%, transparent 40%);
             text-align: center;
+            position: relative;
         }
-        .feature-card {
-            padding: 2.5rem;
-            border-radius: 24px;
-            background: white;
-            border: 1px solid var(--border);
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        .feature-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
-            border-color: var(--primary);
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 100%;
+            background: url('https://www.transparenttextures.com/patterns/cubes.png');
+            opacity: 0.03;
+            pointer-events: none;
         }
         .gradient-text {
             background: linear-gradient(135deg, var(--primary), var(--accent));
             -webkit-background-clip: text;
-            background-clip: text;
             -webkit-text-fill-color: transparent;
             font-weight: 800;
+        }
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+            margin-top: -4rem;
+            position: relative;
+            z-index: 10;
+        }
+        .feature-card {
+            background: white;
+            padding: 3rem 2rem;
+            border-radius: 30px;
+            border: 1px solid var(--border);
+            transition: var(--transition);
+            box-shadow: var(--shadow-md);
+            text-align: left;
+        }
+        [dir="rtl"] .feature-card { text-align: right; }
+        .feature-card:hover {
+            transform: translateY(-15px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--primary);
+        }
+        .feature-icon {
+            width: 64px; height: 64px;
+            border-radius: 20px;
+            background: var(--primary-light);
+            color: var(--primary);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
         }
     </style>
 </head>
 <body class="bg-light">
-    <nav class="glass-nav px-12 py-6 flex justify-between items-center fixed t-0 l-0 r-0 z-100">
-        <div class="logo font-bold text-2xl gradient-text">
-            <i class="fas fa-graduation-cap"></i>
-            <span data-i18n="appName">Akram Academy</span>
+    <!-- Navbar -->
+    <nav class="glass-nav px-8 md:px-16 py-5 flex justify-between items-center fixed t-0 l-0 r-0 z-100">
+        <div class="logo font-bold text-2xl flex items-center gap-3">
+            <div class="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-white">
+                <i class="fas fa-microscope"></i>
+            </div>
+            <span class="gradient-text">Maharat</span>
         </div>
-        <div class="flex gap-6 items-center">
-            <button id="langToggle" class="btn btn-outline" data-i18n="switchLang"></button>
-            <a href="login.html" class="btn btn-outline" data-i18n="login">Sign In</a>
-            <a href="register.html" class="btn btn-primary" data-i18n="register">Register</a>
+        <div class="flex gap-4 items-center">
+            <button id="langToggle" class="btn btn-outline btn-sm hidden-mobile" data-i18n="switchLang">العربية</button>
+            <a href="login.html" class="btn btn-outline btn-sm" data-i18n="login">Sign In</a>
+            <a href="register.html" class="btn btn-primary btn-sm" data-i18n="register">Join Now</a>
         </div>
     </nav>
 
     <main>
+        <!-- Hero Section -->
         <section class="hero">
             <div class="container">
-                <span class="badge mb-4" style="background: rgba(37, 99, 235, 0.1); color: var(--primary); padding: 0.5rem 1rem;">v2.0 Production Ready</span>
-                <h1 class="text-6xl mb-6"><span data-i18n="futureOf">The Future of</span> <br><span class="gradient-text" data-i18n="medicalEducation">Medical Education</span></h1>
-                <p class="text-xl text-muted mx-auto mb-10" style="max-width: 700px;" data-i18n="heroSub">
-                    A professional-grade simulation and learning environment for medical devices and pathological analysis. Built for universities, optimized for excellence.
+                <div class="inline-block px-4 py-2 rounded-full bg-blue-50 text-primary text-xs font-bold uppercase tracking-widest mb-6 animate-pulse">
+                    Next Generation Medical Platform
+                </div>
+                <h1 class="text-5xl md:text-7xl mb-6 leading-tight">
+                    Master Medical Skills <br>
+                    <span class="gradient-text">With AI Precision</span>
+                </h1>
+                <p class="text-xl text-muted mx-auto mb-12 max-w-2xl">
+                    Maharat Academy provides department-based medical training, interactive device simulations, and personalized AI tutoring for the modern medical professional.
                 </p>
-                <div class="flex justify-center gap-4">
-                    <a href="register.html" class="btn btn-primary py-4 px-10 text-lg shadow-lg" data-i18n="getStarted">Get Started Now</a>
-                    <a href="#features" class="btn btn-outline py-4 px-10 text-lg" data-i18n="learnMore">Learn More</a>
+                <div class="flex flex-col md:row justify-center gap-4">
+                    <a href="register.html" class="btn btn-primary px-12 py-4 text-lg">Start Learning For Free</a>
+                    <a href="#features" class="btn btn-outline px-12 py-4 text-lg">Explore Departments</a>
                 </div>
             </div>
         </section>
 
-        <section id="features" class="container py-20">
-            <div class="grid grid-cols-3 gap-8">
+        <!-- Features -->
+        <section id="features" class="container pb-32">
+            <div class="feature-grid">
                 <div class="feature-card">
-                    <div class="mb-6 text-primary">
-                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
-                    </div>
-                    <h3 class="mb-4" data-i18n="medDevicesTitle">Medical Devices</h3>
-                    <p class="text-muted" data-i18n="medDevicesDesc">Master complex instrumentation through interactive virtual simulators and structured learning paths.</p>
+                    <div class="feature-icon"><i class="fas fa-layer-group"></i></div>
+                    <h3 class="text-xl mb-4">Department Focused</h3>
+                    <p class="text-muted text-sm">Organized learning paths managed by academic experts specialized in each medical department.</p>
                 </div>
                 <div class="feature-card">
-                    <div class="mb-6 text-accent">
-                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-                    </div>
-                    <h3 class="mb-4" data-i18n="pathAnalysisTitle">Pathological Analysis</h3>
-                    <p class="text-muted" data-i18n="pathAnalysisDesc">Simulate real-world lab scenarios and analyze pathological data with instant AI-driven feedback.</p>
+                    <div class="feature-icon" style="color:var(--success); background:#ecfdf5;"><i class="fas fa-vial"></i></div>
+                    <h3 class="text-xl mb-4">Advanced Simulation</h3>
+                    <p class="text-muted text-sm">Interact with virtual medical devices and laboratory equipment in a risk-free, immersive environment.</p>
                 </div>
                 <div class="feature-card">
-                    <div class="mb-6 text-success">
-                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                    </div>
-                    <h3 class="mb-4" data-i18n="certReadyTitle">Certification Ready</h3>
-                    <p class="text-muted" data-i18n="certReadyDesc">Secure, timed examinations that validate your skills and provide globally recognized achievement tracking.</p>
+                    <div class="feature-icon" style="color:var(--accent); background:#f0f9ff;"><i class="fas fa-brain"></i></div>
+                    <h3 class="text-xl mb-4">AI Tutor Integration</h3>
+                    <p class="text-muted text-sm">Get instant answers and guidance from our Gemini-powered AI assistants customized for your department.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Stats Section -->
+        <section class="bg-white py-24 border-y border-border">
+            <div class="container grid grid-cols-1 md:grid-cols-4 gap-12 text-center">
+                <div>
+                    <div class="text-4xl font-bold text-primary mb-2">12+</div>
+                    <div class="text-muted font-medium">Departments</div>
+                </div>
+                <div>
+                    <div class="text-4xl font-bold text-primary mb-2">50+</div>
+                    <div class="text-muted font-medium">Simulators</div>
+                </div>
+                <div>
+                    <div class="text-4xl font-bold text-primary mb-2">10k+</div>
+                    <div class="text-muted font-medium">Students</div>
+                </div>
+                <div>
+                    <div class="text-4xl font-bold text-primary mb-2">99%</div>
+                    <div class="text-muted font-medium">Pass Rate</div>
                 </div>
             </div>
         </section>
     </main>
+
+    <footer class="py-12 bg-light border-t border-border">
+        <div class="container text-center">
+            <div class="logo font-bold text-xl mb-6 justify-center flex items-center gap-2">
+                <i class="fas fa-microscope text-primary"></i> Maharat Academy
+            </div>
+            <p class="text-muted text-sm">© 2026 Maharat Academy. All rights reserved. Designed for Excellence.</p>
+        </div>
+    </footer>
 
     <script type="module">
         import i18n from './js/i18n.js';
@@ -96,8 +161,14 @@
         async function checkSession() {
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
-                const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
-                if (profile) window.location.href = `./dashboard/${profile.role}.html`;
+                const { data: profile } = await supabase.from('profiles').select('role, status').eq('id', user.id).single();
+                if (profile) {
+                    if (profile.status === 'approved') {
+                        window.location.href = `./dashboard/${profile.role}.html`;
+                    } else {
+                        window.location.href = `./pages/waiting-approval.html`;
+                    }
+                }
             }
         }
 

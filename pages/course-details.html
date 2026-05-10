@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course Details - Maharat Academy</title>
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .lab-header { background: #0f172a; padding: 6rem 2rem 4rem; color: white; text-align: center; }
+        .lab-tabs { display: flex; justify-content: center; gap: 8px; margin-top: -24px; position: sticky; top: 70px; z-index: 90; }
+        .lab-tab { padding: 12px 24px; background: white; border: 1px solid var(--border); border-radius: 12px; cursor: pointer; font-weight: 600; box-shadow: var(--shadow-sm); transition: 0.3s; display: flex; align-items: center; gap: 8px; }
+        .lab-tab.active { background: var(--primary); color: white; border-color: var(--primary); }
+        .content-panel { display: none; padding: 3rem 0; animation: fadeIn 0.4s ease-out; }
+        .content-panel.active { display: block; }
+        @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+
+        /* Simulator UI */
+        .sim-container { background: #1e293b; border-radius: 20px; padding: 2rem; color: #38bdf8; font-family: monospace; border: 8px solid #334155; }
+        .sim-display { background: #020617; height: 240px; border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; border: 2px solid #334155; overflow-y: auto; font-size: .9rem; line-height: 1.6; }
+        .sim-controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1rem; }
+
+        /* Chat UI */
+        .chat-container { display: flex; flex-direction: column; height: 500px; background: white; border-radius: 20px; border: 1px solid var(--border); overflow: hidden; }
+        .chat-messages { flex: 1; overflow-y: auto; padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; background: #f8fafc; }
+        .msg { max-width: 80%; padding: 12px 16px; border-radius: 15px; font-size: .9rem; line-height: 1.5; }
+        .msg.user { align-self: flex-end; background: var(--primary); color: white; border-bottom-right-radius: 2px; }
+        .msg.ai { align-self: flex-start; background: white; border: 1px solid var(--border); border-bottom-left-radius: 2px; box-shadow: var(--shadow-sm); }
+        .chat-input-area { padding: 1rem; border-top: 1px solid var(--border); display: flex; gap: 10px; background: white; }
+
+        /* Exam UI */
+        .q-card { background: white; padding: 2rem; border-radius: 20px; border: 1px solid var(--border); margin-bottom: 1.5rem; box-shadow: var(--shadow-sm); }
+        .opt-btn { width: 100%; text-align: left; padding: 12px 16px; border: 1px solid var(--border); border-radius: 10px; margin-top: 8px; cursor: pointer; background: transparent; transition: 0.2s; display: flex; align-items: center; gap: 12px; }
+        [dir="rtl"] .opt-btn { text-align: right; }
+        .opt-btn:hover { border-color: var(--primary); background: var(--primary-light); }
+        .opt-btn.selected { border-color: var(--primary); background: var(--primary-light); font-weight: 600; border-width: 2px; }
+
+        /* ===== CONTENT PROTECTION ===== */
+        /* Material Cards */
+        .mat-card { background: white; border-radius: 20px; border: 1px solid var(--border); overflow: hidden; box-shadow: var(--shadow-sm); transition: 0.3s; }
+        .mat-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+        .mat-card-header { padding: 1.25rem 1.5rem; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--border); }
+        .mat-type-icon { width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; }
+        .mat-type-icon.pdf { background: #fee2e2; color: #dc2626; }
+        .mat-type-icon.video { background: #ede9fe; color: #7c3aed; }
+        .mat-type-icon.image { background: #dbeafe; color: #1d4ed8; }
+        .mat-type-icon.ppt { background: #fff7ed; color: #ea580c; }
+        .mat-type-icon.word { background: #eff6ff; color: #1d4ed8; }
+        .mat-type-icon.file { background: #f0fdf4; color: #16a34a; }
+        .mat-open-btn { margin-left: auto; padding: 8px 18px; border-radius: 10px; background: var(--primary); color: white; border: none; cursor: pointer; font-size: .85rem; font-weight: 600; display: flex; align-items: center; gap: 6px; transition: 0.2s; }
+        .mat-open-btn:hover { background: var(--primary-dark, #1d4ed8); }
+
+        /* Secure Viewer Modal */
+        #secureViewer { display: none; position: fixed; inset: 0; z-index: 9999; background: rgba(10,12,20,0.92); backdrop-filter: blur(8px); flex-direction: column; }
+        #secureViewer.open { display: flex; }
+        #svHeader { background: #0f172a; padding: 1rem 1.5rem; display: flex; align-items: center; gap: 12px; flex-shrink: 0; border-bottom: 1px solid #1e293b; }
+        #svTitle { color: white; font-weight: 700; flex: 1; font-size: 1rem; }
+        #svClose { background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 1.2rem; padding: 4px 10px; border-radius: 8px; transition: 0.2s; }
+        #svClose:hover { background: #1e293b; color: white; }
+        #svContent { flex: 1; overflow: hidden; position: relative; }
+        #svContent iframe { width: 100%; height: 100%; border: none; display: block; }
+        #svContent video { width: 100%; height: 100%; background: black; display: block; }
+        #svContent img { max-width: 100%; max-height: 100%; object-fit: contain; margin: auto; display: block; padding: 1rem; }
+        .sv-protection-badge { position: absolute; bottom: 12px; right: 14px; background: rgba(15,23,42,0.7); color: #64748b; font-size: .65rem; padding: 4px 10px; border-radius: 20px; pointer-events: none; display: flex; align-items: center; gap: 5px; z-index: 10; }
+        
+        /* Viewer Loader */
+        .sv-loader { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: white; z-index: 5; transition: opacity 0.3s; }
+        .sv-loader.hidden { opacity: 0; pointer-events: none; }
+        .spinner { width: 40px; height: 40px; border: 4px solid #e2e8f0; border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; mb-4 }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Focus Guard Overlay */
+        #focusGuard { display: none; position: fixed; inset: 0; z-index: 99999; background: #0f172a; align-items: center; justify-content: center; flex-direction: column; color: white; }
+        #focusGuard.active { display: flex; }
+
+        /* No text selection on protected content */
+        #secureViewer, #materialsList { user-select: none; -webkit-user-select: none; }
+    </style>
+</head>
+<body class="bg-light">
+    <nav class="glass-nav px-8 py-4 flex justify-between items-center fixed t-0 l-0 r-0 z-100">
+        <a href="../dashboard/student.html" class="btn btn-outline btn-sm">← <span data-i18n="backToDash">Dashboard</span></a>
+        <div class="font-bold text-lg hidden-mobile" id="courseHeaderName">Course</div>
+        <div id="examTimer" class="font-bold text-danger bg-red-50 px-4 py-1 rounded-lg" style="display:none">00:00</div>
+    </nav>
+
+    <header class="lab-header">
+        <h1 id="courseTitle">Course Title</h1>
+        <p id="courseDesc" class="text-slate-400 max-w-2xl mx-auto mt-2"></p>
+    </header>
+
+    <div class="lab-tabs">
+        <div class="lab-tab active" data-tab="learning"><i class="fas fa-book"></i><span>Learning</span></div>
+        <div class="lab-tab" data-tab="simulator"><i class="fas fa-flask"></i><span>Simulator</span></div>
+        <div class="lab-tab" data-tab="ai"><i class="fas fa-robot"></i><span>AI Tutor</span></div>
+        <div class="lab-tab" data-tab="exam"><i class="fas fa-file-signature"></i><span>Exam</span></div>
+    </div>
+
+    <main class="container">
+        <!-- Learning Panel -->
+        <section id="learning" class="content-panel active">
+            <div id="materialsList" class="flex flex-col gap-10">
+                <!-- Materials go here -->
+            </div>
+        </section>
+
+        <!-- Simulator Panel -->
+        <section id="simulator" class="content-panel">
+            <div class="max-w-3xl mx-auto">
+                <div class="sim-container">
+                    <div class="sim-display" id="simDisplay">> SYSTEM INITIALIZED...<br>> READY FOR SIMULATION.</div>
+                    <div class="sim-controls">
+                        <button class="btn btn-primary" onclick="simAction('init')">INITIALIZE</button>
+                        <button class="btn btn-primary" onclick="simAction('calibrate')">CALIBRATE</button>
+                        <button class="btn btn-primary" onclick="simAction('analyze')">ANALYZE SAMPLE</button>
+                        <button class="btn btn-outline" style="color:white;border-color:#475569" onclick="simAction('reset')">RESET</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- AI Assistant Panel -->
+        <section id="ai" class="content-panel">
+            <div class="max-w-2xl mx-auto">
+                <div class="chat-container">
+                    <div class="chat-messages" id="chatMessages">
+                        <div class="msg ai">
+                            Hello! I am your Maharat Academy Assistant. How can I help you with this course today?
+                        </div>
+                    </div>
+                    <div class="chat-input-area">
+                        <input type="text" id="chatInput" class="form-input" placeholder="Ask me anything...">
+                        <button id="sendBtn" class="btn btn-primary">Send</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Exam Panel -->
+        <section id="exam" class="content-panel">
+            <div id="examIntro" class="text-center glass-card max-w-xl mx-auto py-12">
+                <i class="fas fa-medal text-6xl text-primary mb-6"></i>
+                <h2 class="text-2xl mb-4">Course Certification</h2>
+                <p class="text-muted mb-8">Ready to test your knowledge? This exam consists of multiple-choice questions. You need 60% to pass.</p>
+                <button class="btn btn-primary py-4 px-12 text-lg" id="startExamBtn">Start Exam Now</button>
+            </div>
+            <div id="examEngine" style="display:none" class="max-w-2xl mx-auto">
+                <div id="questionsContainer"></div>
+                <button class="btn btn-primary w-full py-4 mt-8 text-lg" id="submitExamBtn">Submit Final Answers</button>
+            </div>
+        </section>
+    </main>
+
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- ===== SECURE CONTENT VIEWER ===== -->
+    <div id="secureViewer">
+        <div id="svHeader">
+            <i class="fas fa-shield-alt" style="color:#3b82f6;"></i>
+            <span id="svTitle">Protected Content</span>
+            <span style="background:#1e293b;color:#64748b;font-size:.7rem;padding:3px 10px;border-radius:20px;margin-left:auto;margin-right:12px;">
+                <i class="fas fa-lock mr-1"></i>Maharat Academy — Protected
+            </span>
+            <button id="svClose" onclick="closeSecureViewer()"><i class="fas fa-times"></i></button>
+        </div>
+        <div id="svContent">
+            <div id="svLoader" class="sv-loader hidden">
+                <div class="spinner mb-4"></div>
+                <div class="text-slate-500 font-bold" id="svLoaderText">Loading document...</div>
+                <div class="text-xs text-slate-400 mt-2">Large files may take a few moments</div>
+            </div>
+            <!-- Content injected here -->
+            <div class="sv-protection-badge" id="svBadge"><i class="fas fa-shield-alt"></i> Maharat Academy</div>
+        </div>
+    </div>
+
+    <!-- ===== FOCUS GUARD ===== -->
+    <div id="focusGuard">
+        <i class="fas fa-lock fa-3x mb-6" style="color:#3b82f6;"></i>
+        <h2 class="text-2xl font-bold mb-2">Content Protected</h2>
+        <p style="color:#64748b;">Return to this window to continue viewing.</p>
+    </div>
+
+    <script type="module">
+        import i18n from '../js/i18n.js';
+        import { routing } from '../js/services/routing.js';
+        import { supabase } from '../js/services/supabase.js';
+        import { ui } from '../js/services/ui.js';
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const courseId = urlParams.get('id');
+        let profile = null, examData = null;
+
+        async function init() {
+            profile = await routing.checkAccess(['student']);
+            if (!profile) return;
+            if (!courseId) { window.location.href = '../dashboard/student.html'; return; }
+
+            await loadCourseInfo();
+            await loadMaterials();
+            setupTabs();
+            setupChat();
+            i18n.updateDOM();
+        }
+
+        async function loadCourseInfo() {
+            const { data: course } = await supabase.from('courses').select('*').eq('id', courseId).single();
+            if (course) {
+                document.getElementById('courseHeaderName').textContent = course.name;
+                document.getElementById('courseTitle').textContent = course.name;
+                document.getElementById('courseDesc').textContent = course.description || 'Welcome to this professional training module.';
+            }
+        }
+
+        // ===== CONTENT PROTECTION SYSTEM =====
+        const typeIconMap = { 
+            pdf: 'fa-file-pdf', 
+            video: 'fa-play-circle', 
+            image: 'fa-image', 
+            ppt: 'fa-file-powerpoint',
+            word: 'fa-file-word',
+            file: 'fa-file-alt' 
+        };
+        const typeLabelMap = { 
+            pdf: 'PDF Document', 
+            video: 'Video Lecture', 
+            image: 'Image / Diagram', 
+            ppt: 'PowerPoint Presentation',
+            word: 'Word Document',
+            file: 'Resource File' 
+        };
+
+        // Store material data safely to avoid HTML injection in onclick
+        const materialsMap = new Map();
+
+        async function loadMaterials() {
+            const { data: mats } = await supabase.from('materials').select('*').eq('course_id', courseId).eq('status','published').order('created_at');
+            const list = document.getElementById('materialsList');
+            list.innerHTML = '';
+
+            if (!mats?.length) {
+                list.innerHTML = '<div class="text-center p-20 text-muted"><i class="fas fa-info-circle fa-2x mb-4"></i><p>No published materials for this course yet.</p></div>';
+                return;
+            }
+
+            mats.forEach((m) => {
+                // Store the full material object safely
+                materialsMap.set(m.id, m);
+
+                const card = document.createElement('div');
+                card.className = 'mat-card';
+                const iconClass = typeIconMap[m.type] || 'fa-file-alt';
+                const typeLabel = typeLabelMap[m.type] || 'Material';
+                const typeClass = m.type || 'file';
+
+                card.innerHTML = `
+                    <div class="mat-card-header">
+                        <div class="mat-type-icon ${typeClass}">
+                            <i class="fas ${iconClass}"></i>
+                        </div>
+                        <div>
+                            <div class="font-bold text-slate-800">${m.title}</div>
+                            <div class="text-xs text-muted mt-0.5">${typeLabel}</div>
+                        </div>
+                        <button class="mat-open-btn" data-mat-id="${m.id}">
+                            <i class="fas fa-play"></i> Open
+                        </button>
+                    </div>`;
+
+                // Attach click handler safely via JS (not inline onclick)
+                card.querySelector('.mat-open-btn').addEventListener('click', () => {
+                    openSecureViewer(m.id);
+                });
+
+                // Disable right-click on card
+                card.addEventListener('contextmenu', e => e.preventDefault());
+                list.appendChild(card);
+            });
+        }
+
+        window.openSecureViewer = (matId) => {
+            const m = materialsMap.get(matId);
+            if (!m) return;
+            const type = m.type;
+            const url = m.content_url;
+            const title = m.title;
+
+            const viewer = document.getElementById('secureViewer');
+            const svContent = document.getElementById('svContent');
+            const svLoader = document.getElementById('svLoader');
+            const svBadge = document.getElementById('svBadge');
+            document.getElementById('svTitle').textContent = title;
+
+            // Clear previous content, keep loader and badge
+            Array.from(svContent.children).forEach(child => {
+                if (child !== svLoader && child !== svBadge) {
+                    child.remove();
+                }
+            });
+
+            // Show loader for documents
+            if (['ppt', 'word', 'pdf'].includes(type) || url.match(/\.(ppt|pptx|doc|docx|pdf)$/i)) {
+                svLoader.classList.remove('hidden');
+            } else {
+                svLoader.classList.add('hidden');
+            }
+
+            if (url.toLowerCase().match(/\.(ppt|pptx|doc|docx)$/i) || type === 'ppt' || type === 'word') {
+                // PPT, Word, and other files — Force Microsoft Office Viewer
+                // 'embed.aspx' does not include a download/pop-out button by default
+                const encoded = encodeURIComponent(url);
+                const iframe = document.createElement('iframe');
+                iframe.src = `https://view.officeapps.live.com/op/embed.aspx?src=${encoded}`;
+                iframe.style.cssText = 'width:100%;height:100%;border:none;display:block;background:white;';
+                iframe.title = title;
+                
+                // Hide loader when iframe finishes loading
+                iframe.onload = () => svLoader.classList.add('hidden');
+                
+                svContent.insertBefore(iframe, svBadge);
+
+            } else if (type === 'pdf' || url.toLowerCase().endsWith('.pdf')) {
+                // PDF: embed directly with toolbar hidden
+                const iframe = document.createElement('iframe');
+                iframe.src = url + '#toolbar=0&navpanes=0&scrollbar=1';
+                iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin');
+                iframe.style.cssText = 'width:100%;height:100%;border:none;display:block;background:#f8fafc;';
+                iframe.onload = () => svLoader.classList.add('hidden');
+                svContent.insertBefore(iframe, svBadge);
+
+            } else if (type === 'video') {
+                if (url.includes('youtube.com') || url.includes('youtu.be')) {
+                    // YouTube embed
+                    let vid = '';
+                    try {
+                        if (url.includes('v=')) vid = new URL(url).searchParams.get('v');
+                        else vid = url.split('/').pop().split('?')[0];
+                    } catch(e) { vid = url.split('/').pop(); }
+                    const iframe = document.createElement('iframe');
+                    iframe.src = `https://www.youtube-nocookie.com/embed/${vid}?rel=0&modestbranding=1&controls=1`;
+                    iframe.style.cssText = 'width:100%;height:100%;border:none;display:block;';
+                    iframe.allow = 'autoplay; encrypted-media; fullscreen';
+                    iframe.allowFullscreen = true;
+                    svContent.insertBefore(iframe, svBadge);
+                } else {
+                    // Direct video file
+                    const video = document.createElement('video');
+                    video.src = url;
+                    video.controls = true;
+                    video.controlsList = 'nodownload noremoteplayback';
+                    video.disablePictureInPicture = true;
+                    video.style.cssText = 'width:100%;height:100%;background:#000;display:block;';
+                    video.addEventListener('contextmenu', e => e.preventDefault());
+                    svContent.insertBefore(video, svBadge);
+                }
+
+            } else if (type === 'image') {
+                const img = document.createElement('img');
+                img.src = url;
+                img.style.cssText = 'max-width:100%;max-height:100%;object-fit:contain;margin:auto;display:block;padding:2rem;';
+                img.addEventListener('contextmenu', e => e.preventDefault());
+                img.draggable = false;
+                svContent.insertBefore(img, svBadge);
+
+            } else {
+                // PPT, Word, and other files — use Google Docs Viewer
+                // 'gview' endpoint is often more reliable for embedding than 'viewer'
+                const encoded = encodeURIComponent(url);
+                const iframe = document.createElement('iframe');
+                iframe.src = `https://docs.google.com/gview?url=${encoded}&embedded=true`;
+                iframe.style.cssText = 'width:100%;height:100%;border:none;display:block;background:white;';
+                iframe.title = title;
+                svContent.insertBefore(iframe, svBadge);
+                ui.toast('Preparing document — please wait a moment...', 'info');
+            }
+
+            viewer.classList.add('open');
+            document.body.style.overflow = 'hidden';
+        };
+
+        window.closeSecureViewer = () => {
+            document.getElementById('secureViewer').classList.remove('open');
+            document.body.style.overflow = '';
+            // Stop any playing video
+            const video = document.querySelector('#svContent video');
+            if (video) video.pause();
+        };
+
+        // ===== FOCUS GUARD (blurs content on window/tab switch) =====
+        const focusGuard = document.getElementById('focusGuard');
+        document.addEventListener('visibilitychange', () => {
+            const viewerOpen = document.getElementById('secureViewer').classList.contains('open');
+            if (viewerOpen) {
+                if (document.hidden) {
+                    focusGuard.classList.add('active');
+                    const video = document.querySelector('#svContent video');
+                    if (video) video.pause();
+                } else {
+                    focusGuard.classList.remove('active');
+                }
+            }
+        });
+
+        // Disable right-click globally on this page
+        document.addEventListener('contextmenu', e => {
+            if (e.target.closest('#materialsList, #secureViewer')) e.preventDefault();
+        });
+
+        // Anti-Screenshot & Screen Recording Measures
+        document.addEventListener('keyup', (e) => {
+            // Block PrintScreen key
+            if (e.key === 'PrintScreen' || e.keyCode === 44) {
+                navigator.clipboard.writeText('Screenshots are disabled for Maharat Academy protected content.');
+                focusGuard.classList.add('active');
+                setTimeout(() => focusGuard.classList.remove('active'), 3000);
+                ui.toast('Screenshots are disabled for this content.', 'error');
+            }
+        });
+
+        document.addEventListener('keydown', (e) => {
+            // Block Ctrl+P (Print), Ctrl+S (Save)
+            if ((e.ctrlKey || e.metaKey) && (e.key === 'p' || e.key === 's')) {
+                e.preventDefault();
+                ui.toast('Action disabled for security.', 'error');
+            }
+            
+            // Heuristic for OS Snipping Tools: Win+Shift+S (Windows) or Cmd+Shift+4 (Mac)
+            if ((e.metaKey && e.shiftKey) || (e.ctrlKey && e.shiftKey)) {
+                // Instantly obscure the screen before the OS tool fully activates
+                const viewerOpen = document.getElementById('secureViewer').classList.contains('open');
+                if (viewerOpen) {
+                    focusGuard.classList.add('active');
+                    // Keep it obscured for a few seconds to ruin the snip
+                    setTimeout(() => focusGuard.classList.remove('active'), 4000);
+                }
+            }
+        });
+
+        /* TABS */
+        function setupTabs() {
+            document.querySelectorAll('.lab-tab').forEach(t => t.onclick = () => {
+                document.querySelectorAll('.lab-tab').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.content-panel').forEach(p => p.classList.remove('active'));
+                t.classList.add('active');
+                document.getElementById(t.dataset.tab).classList.add('active');
+            });
+
+            // Auto-select tab if in URL
+            const urlTab = urlParams.get('tab');
+            if (urlTab) {
+                const targetTab = document.querySelector(`.lab-tab[data-tab="${urlTab}"]`);
+                if (targetTab) targetTab.click();
+            }
+        }
+
+        /* SIMULATOR */
+        window.simAction = (action) => {
+            const disp = document.getElementById('simDisplay');
+            const time = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+            
+            if (action === 'reset') { disp.innerHTML = `> [${time}] SYSTEM RESET...<br>> READY.`; return; }
+
+            const logs = {
+                init: 'HARDWARE CHECK: OK\nMEMORY ALLOCATION: OK\nREAGENTS DETECTED: 100%\nSYSTEM INITIALIZED.',
+                calibrate: 'RUNNING AUTO-CALIBRATION...\nZEROING SENSORS...\nCALIBRATION CURVE UPDATED.\nREADY.',
+                analyze: 'ASPIRATING SAMPLE...\nMIXING WITH REAGENTS...\nINCUBATING (3s)...\nRESULT: HEMOGLOBIN 14.2 g/dL [NORMAL]'
+            };
+
+            disp.innerHTML += `<br><br>> [${time}] ${action.toUpperCase()}ING...<br>${logs[action]}`;
+            disp.scrollTop = disp.scrollHeight;
+        }
+
+        /* CHAT */
+        function setupChat() {
+            const input = document.getElementById('chatInput');
+            const btn = document.getElementById('sendBtn');
+            const container = document.getElementById('chatMessages');
+
+            const sendMessage = async () => {
+                const text = input.value.trim();
+                if (!text) return;
+
+                // Add User Message
+                const userDiv = document.createElement('div');
+                userDiv.className = 'msg user';
+                userDiv.textContent = text;
+                container.appendChild(userDiv);
+                input.value = '';
+                container.scrollTop = container.scrollHeight;
+
+                // Real AI Processing
+                const typing = document.createElement('div');
+                typing.className = 'msg ai italic opacity-50';
+                typing.textContent = i18n.lang === 'ar' ? 'المساعد يكتب...' : 'Assistant is thinking...';
+                container.appendChild(typing);
+                container.scrollTop = container.scrollHeight;
+
+                try {
+                    const { data: { session } } = await supabase.auth.getSession();
+                    const response = await fetch(`${supabase.supabaseUrl}/functions/v1/ai-chat`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${session?.access_token}`,
+                            'apikey': supabase.supabaseKey
+                        },
+                        body: JSON.stringify({
+                            message: text,
+                            course: document.getElementById('courseTitle').textContent
+                        })
+                    });
+
+                    const data = await response.json();
+                    if (container.contains(typing)) container.removeChild(typing);
+                    
+                    const aiDiv = document.createElement('div');
+                    aiDiv.className = 'msg ai';
+                    
+                    if (data.error) {
+                        aiDiv.textContent = `Error: ${data.error}`;
+                        aiDiv.style.color = '#ef4444'; // Red text for errors
+                    } else {
+                        aiDiv.textContent = data.reply || (i18n.lang === 'ar' ? "عذراً، واجهت مشكلة في الاتصال." : "Sorry, I'm having trouble connecting.");
+                    }
+                    
+                    container.appendChild(aiDiv);
+                    container.scrollTop = container.scrollHeight;
+
+                } catch (error) {
+                    if (container.contains(typing)) container.removeChild(typing);
+                    ui.toast(i18n.lang === 'ar' ? 'فشل الاتصال بالذكاء الاصطناعي' : 'AI connection failed', 'error');
+                }
+            };
+
+            btn.onclick = sendMessage;
+            input.onkeypress = (e) => { if(e.key === 'Enter') sendMessage(); };
+        }
+
+        /* EXAM */
+        document.getElementById('startExamBtn').onclick = async () => {
+            const { data: exam, error } = await supabase.from('exams').select('*, questions(*)').eq('course_id', courseId).eq('status','published').single();
+            if (error || !exam || !exam.questions?.length) { ui.toast('No exam available for this course yet.', 'warning'); return; }
+            
+            // Check Schedule
+            if (exam.scheduled_at && new Date(exam.scheduled_at) > new Date()) {
+                const time = new Date(exam.scheduled_at).toLocaleString();
+                ui.toast(`This exam is scheduled for ${time}`, 'info');
+                return;
+            }
+
+            examData = exam;
+
+            // Start Timer
+            let timeLeft = (exam.time_limit_minutes || 30) * 60;
+            const timerEl = document.getElementById('examTimer');
+            timerEl.style.display = 'block';
+            
+            const timer = setInterval(() => {
+                const mins = Math.floor(timeLeft / 60);
+                const secs = timeLeft % 60;
+                timerEl.textContent = `${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    submitExam(true); // Auto-submit
+                }
+                timeLeft--;
+            }, 1000);
+
+            document.getElementById('examIntro').style.display = 'none';
+            document.getElementById('examEngine').style.display = 'block';
+
+            // Sort questions by sort_order
+            const questions = (exam.questions || []).sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+
+            const container = document.getElementById('questionsContainer');
+            container.innerHTML = '';
+            questions.forEach((q, i) => {
+                const card = document.createElement('div');
+                card.className = 'q-card';
+                card.dataset.qid = q.id;
+                card.dataset.qtype = q.type || 'mcq';
+
+                if ((q.type || 'mcq') === 'mcq') {
+                    // MCQ: render option buttons
+                    card.innerHTML = `<p class="font-bold text-lg mb-6">${i+1}. ${q.question}</p>`;
+                    Object.keys(q.options || {}).forEach(key => {
+                        const b = document.createElement('button');
+                        b.className = 'opt-btn';
+                        b.innerHTML = `<span class="w-8 h-8 rounded-full border flex items-center justify-center font-bold text-xs uppercase">${key}</span><span>${q.options[key]}</span>`;
+                        b.onclick = () => {
+                            card.querySelectorAll('.opt-btn').forEach(btn => btn.classList.remove('selected'));
+                            b.classList.add('selected');
+                            card.dataset.choice = key;
+                        };
+                        card.appendChild(b);
+                    });
+                } else if (q.type === 'boolean') {
+                    // True/False
+                    card.innerHTML = `<p class="font-bold text-lg mb-6">${i+1}. ${q.question}</p>`;
+                    ['true', 'false'].forEach(val => {
+                        const b = document.createElement('button');
+                        b.className = 'opt-btn';
+                        b.innerHTML = `<span class="w-8 h-8 rounded-full border flex items-center justify-center font-bold text-xs uppercase">${val[0]}</span><span>${val === 'true' ? 'True' : 'False'}</span>`;
+                        b.onclick = () => {
+                            card.querySelectorAll('.opt-btn').forEach(btn => btn.classList.remove('selected'));
+                            b.classList.add('selected');
+                            card.dataset.choice = val;
+                        };
+                        card.appendChild(b);
+                    });
+                } else {
+                    // Essay: render textarea
+                    card.innerHTML = `
+                        <p class="font-bold text-lg mb-4">${i+1}. ${q.question}</p>
+                        <p class="text-xs text-muted mb-3"><i class="fas fa-pen mr-1"></i>Write your detailed answer below:</p>
+                        <textarea class="form-input essay-answer" rows="5" placeholder="Type your answer here..." data-qid="${q.id}"></textarea>`;
+                }
+                container.appendChild(card);
+            });
+        };
+
+        async function submitExam(auto = false) {
+            const cards = document.querySelectorAll('.q-card');
+            let answers = {};
+            let unanswered = 0;
+
+            cards.forEach(c => {
+                const qtype = c.dataset.qtype || 'mcq';
+                if (qtype === 'mcq' || qtype === 'boolean') {
+                    if (c.dataset.choice) answers[c.dataset.qid] = c.dataset.choice;
+                    else unanswered++;
+                } else {
+                    const ta = c.querySelector('.essay-answer');
+                    if (ta && ta.value.trim()) answers[c.dataset.qid] = ta.value.trim();
+                    else unanswered++;
+                }
+            });
+
+            if (unanswered > 0 && !auto) {
+                if (!confirm(`You have ${unanswered} unanswered question(s). Submit anyway?`)) return;
+            }
+
+            const submitBtn = document.getElementById('submitExamBtn');
+            ui.setLoading(submitBtn, true);
+            const { data, error } = await supabase.rpc('submit_exam', {
+                p_exam_id: examData.id,
+                p_answers: answers
+            });
+
+            if (error) {
+                ui.toast(error.message, 'error');
+                ui.setLoading(submitBtn, false);
+            } else {
+                const hasEssay = data?.has_essay;
+                const score = data?.score;
+                const msg = hasEssay
+                    ? (i18n.lang === 'ar' ? `درجة الاختياري: ${score}%. الإجابات المقالية أرسلت للتصحيح.` : `MCQ Score: ${score}%. Essay answers submitted for manual grading.`)
+                    : (i18n.lang === 'ar' ? `تم إرسال الامتحان! درجتك: ${score}%` : `Exam submitted! Your score: ${score}%`);
+                
+                ui.toast(msg, 'success');
+                setTimeout(() => window.location.href = '../dashboard/student.html', 2500);
+            }
+        }
+
+        document.getElementById('submitExamBtn').onclick = () => submitExam(false);
+
+        init();
+    </script>
+</body>
+</html>

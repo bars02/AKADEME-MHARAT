@@ -15,7 +15,7 @@ export const routing = {
 
         const { data: profile, error } = await supabase
             .from('profiles')
-            .select('role, status, department_id, name')
+            .select('id, role, status, department_id, name')
             .eq('id', user.id)
             .single();
 
@@ -35,6 +35,7 @@ export const routing = {
 
         // 2. Check Role Requirements
         if (requiredRoles.length > 0 && !requiredRoles.includes(profile.role)) {
+            // Role fallback: if student tries to access admin, redirect to their own dashboard
             window.location.href = `${pathPrefix}dashboard/${profile.role}.html`;
             return profile;
         }

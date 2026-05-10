@@ -8,7 +8,7 @@
 
 const dictionaries = {
     en: {
-        appName: "Akram Academy",
+        appName: "Maharat Academy",
         login: "Sign In",
         register: "Create Account",
         registerSub: "Professional vocational and medical training platform",
@@ -64,10 +64,8 @@ const dictionaries = {
         uploadMaterials: "Publish Content",
         publish: "Publish",
         student: "Student",
-        instructor: "Instructor",
-        admin: "Administrator",
-        super_admin: "Super Admin",
-        name: "Name",
+        academic: "Academic",
+        admin: "Admin",
         status: "Status",
         actions: "Actions",
         // Home specific
@@ -111,10 +109,19 @@ const dictionaries = {
         publishedDevices: "Published Devices",
         model3d: "3D Model",
         image: "Image",
-        file: "File"
+        file: "File",
+        home: "Home",
+        myProfile: "My Profile",
+        coursesMaterials: "Courses & Materials",
+        aiTutor: "AI Tutor",
+        "3dTour": "3D Tour",
+        myResults: "My Results",
+        notifications: "Notifications",
+        announcements: "Announcements",
+        grading: "Grading"
     },
     ar: {
-        appName: "أكاديمية أكرم",
+        appName: "Maharat Academy",
         login: "تسجيل الدخول",
         register: "إنشاء حساب",
         registerSub: "المنصة المهنية للتدريب المهني والطبي",
@@ -170,10 +177,8 @@ const dictionaries = {
         uploadMaterials: "نشر المحتوى",
         publish: "نشر",
         student: "طالب",
-        instructor: "مدرب",
-        admin: "مسؤول",
-        super_admin: "مسؤول النظام",
-        name: "الاسم",
+        academic: "أكاديمي",
+        admin: "مدير النظام",
         status: "الحالة",
         actions: "الإجراءات",
         // Home specific
@@ -217,7 +222,16 @@ const dictionaries = {
         publishedDevices: "الأجهزة المنشورة",
         model3d: "مجسم 3D",
         image: "صورة",
-        file: "ملف"
+        file: "ملف",
+        home: "الرئيسية",
+        myProfile: "الملف الشخصي",
+        coursesMaterials: "الكورسات والمواد",
+        aiTutor: "المساعد الذكي",
+        "3dTour": "الجولة الافتراضية",
+        myResults: "نتائجي",
+        notifications: "الإشعارات",
+        announcements: "الإعلانات",
+        grading: "التقييم"
     }
 };
 

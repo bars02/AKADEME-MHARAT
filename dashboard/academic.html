@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" translate="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="google" content="notranslate">
+    <title>Academic Dashboard - Maharat Academy</title>
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .view-section { display: none; }
+        .view-section.active { display: block; animation: fadeIn 0.35s ease-out; }
+        @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+        
+        .modal-bg { display: none; position: fixed; inset: 0; background: rgba(15,23,42,0.55); backdrop-filter: blur(4px); align-items: center; justify-content: center; z-index: 2000; }
+        .modal-bg.open { display: flex; }
+        
+        .status-badge { padding: 3px 10px; border-radius: 20px; font-size: .72rem; font-weight: 700; text-transform: uppercase; }
+        .status-badge.pending_review { background:#fef9c3; color:#854d0e; }
+        .status-badge.published { background:#dcfce7; color:#166534; }
+        .status-badge.rejected { background:#fee2e2; color:#991b1b; }
+        .status-badge.pending { background:#fef9c3; color:#854d0e; }
+        .status-badge.approved { background:#dcfce7; color:#166534; }
+        
+        /* Dept drill-down course cards */
+        .course-img-wrap { width: 100%; height: 140px; overflow: hidden; background: #f1f5f9; display: flex; align-items: center; justify-content: center; }
+        .course-img-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    </style>
+</head>
+<body class="bg-light">
+<div class="dashboard-layout">
+
+  <!-- ======= SIDEBAR ======= -->
+  <aside class="sidebar" id="sidebar">
+    <div class="logo mb-10 flex justify-between items-center w-full pr-4">
+      <div>
+        <i class="fas fa-chalkboard-teacher"></i>
+        <span data-i18n="appName">Maharat Academy</span>
+      </div>
+      <button class="mobile-only" style="background:none;border:none;color:var(--text);font-size:1.2rem;cursor:pointer;" onclick="document.getElementById('sidebar').classList.remove('open')">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <nav>
+      <a href="#" class="nav-link active" data-view="overview">
+        <i class="fas fa-chart-line"></i><span data-i18n="overview">Overview</span>
+      </a>
+      <a href="#" class="nav-link" data-view="students">
+        <i class="fas fa-user-graduate"></i><span data-i18n="studentManagement">My Students</span>
+      </a>
+      <a href="#" class="nav-link" data-view="courses">
+        <i class="fas fa-book"></i><span data-i18n="courses">Courses</span>
+      </a>
+      <a href="#" class="nav-link" data-view="materials">
+        <i class="fas fa-file-alt"></i><span data-i18n="materials">Materials</span>
+      </a>
+      <a href="#" class="nav-link" data-view="exams">
+        <i class="fas fa-file-signature"></i><span data-i18n="exams">Exams</span>
+      </a>
+      <a href="#" class="nav-link" data-view="grading">
+        <i class="fas fa-tasks"></i><span data-i18n="grading">Grading</span>
+      </a>
+      <a href="#" class="nav-link" data-view="notifications">
+        <i class="fas fa-bell"></i><span data-i18n="notifications">Notifications</span>
+      </a>
+      <a href="#" class="nav-link" data-view="announcements">
+        <i class="fas fa-bullhorn"></i><span data-i18n="announcements">Announcements</span>
+      </a>
+      <a href="#" class="nav-link" data-view="settings">
+        <i class="fas fa-cog"></i><span data-i18n="settings">Dept Settings</span>
+      </a>
+      <div style="margin-top:auto;border-top:1px solid var(--border);padding-top:1rem;">
+        <button id="logoutBtn" class="nav-link w-full" style="background:none;border:none;cursor:pointer;color:var(--danger);">
+          <i class="fas fa-sign-out-alt"></i><span data-i18n="logout">Sign Out</span>
+        </button>
+      </div>
+    </nav>
+  </aside>
+
+  <!-- ======= MAIN ======= -->
+  <main class="main-content">
+    <header class="top-header">
+      <div class="flex items-center gap-4">
+        <button id="mobileMenuBtn" class="btn btn-outline btn-sm mobile-only">
+          <i class="fas fa-bars"></i>
+        </button>
+        <div>
+          <h1 id="viewTitle" class="text-2xl font-bold">Academic Dashboard</h1>
+          <p class="text-sm text-muted" id="deptInfo">Loading Department...</p>
+        </div>
+      </div>
+      <div class="flex gap-4 items-center">
+        <button id="langToggle" class="btn btn-outline btn-sm" data-i18n="switchLang">العربية</button>
+        <div class="flex items-center gap-3">
+          <div>
+            <div id="academicName" class="font-bold">Academic Name</div>
+            <div class="text-xs text-muted" id="academicRole">Department Manager</div>
+          </div>
+          <div class="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold"
+               style="background:var(--primary);">
+            <i class="fas fa-user-tie"></i>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- OVERVIEW -->
+    <section id="overviewSection" class="view-section active">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:rgba(37,99,235,.1);color:var(--primary);"><i class="fas fa-book"></i></div>
+          <div><div class="text-2xl font-bold" id="statCourses">0</div><div class="text-sm text-muted">Courses</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:rgba(16,185,129,.1);color:var(--success);"><i class="fas fa-user-graduate"></i></div>
+          <div><div class="text-2xl font-bold" id="statStudents">0</div><div class="text-sm text-muted">Students</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:rgba(245,158,11,.1);color:var(--warning);"><i class="fas fa-clock"></i></div>
+          <div><div class="text-2xl font-bold" id="statPendingStudents">0</div><div class="text-sm text-muted">Pending Students</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:rgba(139,92,246,.1);color:#8b5cf6;"><i class="fas fa-file-alt"></i></div>
+          <div><div class="text-2xl font-bold" id="statMaterials">0</div><div class="text-sm text-muted">Total Materials</div></div>
+        </div>
+      </div>
+      <h3 class="font-bold mb-4">Department Courses</h3>
+      <div id="courseList" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
+    </section>
+
+    <!-- COURSES (View Only — Admin creates courses) -->
+    <section id="coursesSection" class="view-section">
+      <div class="flex justify-between items-center mb-2">
+        <h2 class="text-xl font-bold">Department Courses</h2>
+        <span class="text-xs text-muted bg-slate-100 px-3 py-1 rounded-full"><i class="fas fa-info-circle mr-1"></i>Courses are created by Admin</span>
+      </div>
+      <p class="text-sm text-muted mb-6">You can upload materials and create exams for the courses listed below.</p>
+      <div id="manageCourseList" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
+    </section>
+
+    <!-- STUDENTS -->
+    <section id="studentsSection" class="view-section">
+      <h2 class="text-xl font-bold mb-6">Department Students</h2>
+      <div class="glass-card p-0 overflow-hidden">
+        <table class="data-table"><thead><tr>
+          <th>Name</th><th>Email</th><th>Status</th><th>Joined</th><th>Actions</th>
+        </tr></thead><tbody id="studentTable"></tbody></table>
+      </div>
+    </section>
+
+    <!-- MATERIALS -->
+    <section id="materialsSection" class="view-section">
+      <div class="glass-card p-6">
+        <div class="flex justify-between items-center mb-6">
+          <h3 class="text-xl font-bold">My Materials</h3>
+          <span class="text-xs text-muted"><i class="fas fa-info-circle mr-1"></i>Go to "Courses" to upload new materials.</span>
+        </div>
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Type</th>
+                <th>Course</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="myMaterialsTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- EXAMS -->
+    <section id="examsSection" class="view-section">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="md:col-span-1 glass-card" id="examCourseList">
+                <h3 class="mb-4">Select Course</h3>
+            </div>
+            <div class="md:col-span-2 glass-card" id="examEditor" style="display:none;">
+                <div class="flex flex-col gap-6">
+                    <div class="flex justify-between items-center">
+                        <h3 id="examEditorTitle" class="font-bold text-xl text-primary">Exam Editor</h3>
+                        <div class="flex gap-2">
+                            <button id="publishExamBtn" class="btn btn-success btn-sm" onclick="publishExam()">
+                                <i class="fas fa-paper-plane mr-1"></i> Send Exam to Students
+                            </button>
+                            <button class="btn btn-primary btn-sm" onclick="openAddQuestion()">
+                                <i class="fas fa-plus mr-1"></i> Add Question
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Exam Settings -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-slate-50 rounded-xl border border-slate-100">
+                        <div class="form-group mb-0">
+                            <label class="text-xs font-bold text-muted uppercase">Duration (Minutes)</label>
+                            <input type="number" id="examDuration" class="form-input" value="30" min="1" onchange="updateExamSettings()">
+                        </div>
+                        <div class="form-group mb-0">
+                            <label class="text-xs font-bold text-muted uppercase">Schedule Release (Optional)</label>
+                            <input type="datetime-local" id="examSchedule" class="form-input" onchange="updateExamSettings()">
+                        </div>
+                    </div>
+
+                    <div id="questionsList" class="flex flex-col gap-4"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ANNOUNCEMENTS -->
+    <section id="announcementsSection" class="view-section">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="md:col-span-1 glass-card">
+                <h3 class="mb-6">New Announcement</h3>
+                <div class="form-group mb-4">
+                    <label>Title</label>
+                    <input type="text" id="annTitle" class="form-input">
+                </div>
+                <div class="form-group mb-6">
+                    <label>Message</label>
+                    <textarea id="annBody" class="form-input" rows="4"></textarea>
+                </div>
+                <button class="btn btn-primary w-full" id="saveAnnBtn">Post Announcement</button>
+            </div>
+            <div class="md:col-span-2" id="annList"></div>
+        </div>
+    </section>
+
+    <!-- SETTINGS -->
+    <section id="settingsSection" class="view-section">
+        <div class="max-w-2xl">
+            <div class="glass-card">
+                <h3 class="mb-6">Department Settings</h3>
+                <div class="form-group mb-4">
+                    <label>External Links (JSON)</label>
+                    <textarea id="deptLinks" class="form-input" rows="5" placeholder='[{"name": "Library", "url": "https://..."}]'></textarea>
+                </div>
+                <button class="btn btn-primary" id="saveDeptSettingsBtn">Save Settings</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- GRADING -->
+    <section id="gradingSection" class="view-section">
+      <h2 class="text-xl font-bold mb-6">Grading — Pending Essay Results</h2>
+      <div id="gradingList" class="flex flex-col gap-6"></div>
+    </section>
+
+    <!-- NOTIFICATIONS -->
+    <section id="notificationsSection" class="view-section">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div class="lg:col-span-1 glass-card">
+          <h3 class="mb-6">Send Notification</h3>
+          <div class="form-group mb-4">
+            <label>Title</label>
+            <input type="text" id="notifTitle" class="form-input" placeholder="e.g. Exam Tomorrow!">
+          </div>
+          <div class="form-group mb-6">
+            <label>Message</label>
+            <textarea id="notifMsg" class="form-input" rows="4" placeholder="Notification message..."></textarea>
+          </div>
+          <button class="btn btn-primary w-full" id="sendNotifBtn">Send to All Students</button>
+        </div>
+        <div class="lg:col-span-2" id="notifSentList"></div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- QUESTION MODAL -->
+<div id="questionModal" class="modal-bg">
+    <div class="modal" style="max-width:520px;">
+        <h3 class="mb-4" id="qModalTitle">Add Question</h3>
+        <input type="hidden" id="editQuestionId">
+        <div class="form-group mb-4">
+          <label>Question Type</label>
+          <select id="qType" class="form-input" onchange="toggleQuestionType()">
+            <option value="mcq">MCQ — Multiple Choice</option>
+            <option value="boolean">True / False</option>
+            <option value="essay">Essay — Descriptive (Manual Grading)</option>
+          </select>
+        </div>
+        <div class="form-group mb-4"><label>Question</label><textarea id="qText" class="form-input" rows="3"></textarea></div>
+        
+        <!-- MCQ Options -->
+        <div id="mcqOptions">
+          <div class="grid grid-cols-2 gap-4 mb-4">
+              <input type="text" id="optA" class="form-input" placeholder="Option A">
+              <input type="text" id="optB" class="form-input" placeholder="Option B">
+              <input type="text" id="optC" class="form-input" placeholder="Option C">
+              <input type="text" id="optD" class="form-input" placeholder="Option D">
+          </div>
+          <div class="form-group mb-4">
+            <label>Correct Answer</label>
+            <select id="qCorrect" class="form-input">
+              <option value="a">A</option><option value="b">B</option><option value="c">C</option><option value="d">D</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- True/False Options -->
+        <div id="booleanOptions" style="display:none;">
+          <div class="form-group mb-4">
+            <label>Correct Answer</label>
+            <select id="qCorrectBool" class="form-input">
+              <option value="true">True</option>
+              <option value="false">False</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Essay Model Answer -->
+        <div id="essayOptions" style="display:none;">
+          <div class="form-group mb-4">
+            <label>Model Answer (for reference)</label>
+            <textarea id="qModelAnswer" class="form-input" rows="3" placeholder="Model answer for grading reference..."></textarea>
+          </div>
+        </div>
+
+        <div class="flex gap-4">
+            <button class="btn btn-outline flex-1" onclick="closeModal('questionModal')">Cancel</button>
+            <button class="btn btn-primary flex-1" id="saveQuestionBtn">Save Question</button>
+        </div>
+    </div>
+</div>
+
+<!-- STUDENT RESULTS MODAL -->
+<div id="studentResultsModal" class="modal-bg">
+    <div class="modal" style="max-width:700px;">
+        <div class="flex justify-between items-center mb-6">
+            <h3 id="studentResultsTitle" class="font-bold">Student Results</h3>
+            <button class="text-muted" onclick="closeModal('studentResultsModal')"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="glass-card p-0 overflow-hidden border-none shadow-none">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Exam/Course</th>
+                        <th>Score</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody id="studentResultsTable"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+    <!-- UPLOAD MATERIAL MODAL -->
+    <div id="uploadMaterialModal" class="modal-bg">
+        <div class="modal" style="max-width:480px;">
+            <button class="absolute top-4 right-4 text-muted" onclick="closeModal('uploadMaterialModal')"><i class="fas fa-times"></i></button>
+            <h3 class="mb-6"><i class="fas fa-upload text-primary mr-2"></i>Upload Material</h3>
+            <p class="text-sm text-muted mb-4" id="uploadMatCourseLabel">Course: —</p>
+            <form id="materialForm">
+                <input type="hidden" id="uploadMatCourseId" required>
+                <div class="form-group mb-4">
+                    <label>Title</label>
+                    <input type="text" id="matTitle" class="form-input" placeholder="e.g. Lecture 1 - Basics" required>
+                </div>
+                <div class="form-group mb-4">
+                    <label>Type</label>
+                    <select id="matType" class="form-input">
+                        <option value="pdf">PDF Document</option>
+                        <option value="video">Video Lecture</option>
+                        <option value="ppt">PowerPoint (PPT)</option>
+                        <option value="word">Word (DOC)</option>
+                        <option value="image">Image / Diagram</option>
+                        <option value="file">Other File</option>
+                    </select>
+                </div>
+                <div class="form-group mb-6">
+                    <label>File</label>
+                    <input type="file" id="matFile" class="form-input" required>
+                </div>
+                <button type="submit" id="uploadBtn" class="btn btn-primary w-full">Submit for Review</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="editMaterialModal" class="modal-bg">
+        <div class="glass-card max-w-md w-full p-8 relative">
+            <button class="absolute top-4 right-4 text-muted" onclick="closeModal('editMaterialModal')"><i class="fas fa-times"></i></button>
+            <h3 class="text-xl font-bold mb-6">Edit Material</h3>
+            <input type="hidden" id="editMatId">
+            <div class="form-group mb-4">
+                <label>Title</label>
+                <input type="text" id="editMatTitle" class="form-input">
+            </div>
+            <div class="form-group mb-4">
+                <label>Type</label>
+                <select id="editMatType" class="form-input">
+                    <option value="pdf">PDF Document</option>
+                    <option value="video">Video Lecture</option>
+                    <option value="ppt">PowerPoint (PPT)</option>
+                    <option value="word">Word (DOC)</option>
+                    <option value="image">Image / Diagram</option>
+                    <option value="file">Other File</option>
+                </select>
+            </div>
+            <div class="form-group mb-6">
+                <label>Replace File (Optional)</label>
+                <input type="file" id="editMatFile" class="form-input" accept="image/*,application/pdf,video/*">
+            </div>
+            <button id="updateMatBtn" class="btn btn-primary w-full">Save Changes</button>
+        </div>
+    </div>
+
+    <div id="toastContainer" class="toast-container"></div>
+
+<script type="module">
+import i18n from '../js/i18n.js';
+import { routing } from '../js/services/routing.js';
+import { supabase } from '../js/services/supabase.js';
+import { ui } from '../js/services/ui.js';
+
+let myDeptId = null, myId = null, myCourses = [], currentExamId = null;
+
+async function init() {
+  const profile = await routing.checkAccess(['academic']);
+  if (!profile) return;
+  myId = profile.id;
+  myDeptId = profile.department_id;
+  document.getElementById('academicName').textContent = profile.name || 'Academic';
+
+  const { data: dept } = await supabase.from('departments').select('*').eq('id', myDeptId).single();
+  document.getElementById('deptInfo').textContent = dept?.name || 'Department';
+  document.getElementById('deptLinks').value = JSON.stringify(dept?.external_links || [], null, 2);
+
+  await refreshData();
+  setupNav();
+  setupNotifications();
+  i18n.updateDOM();
+}
+
+async function refreshData() {
+    await Promise.all([
+        loadStats(),
+        loadStudents(),
+        loadCourses(),
+        loadAnnouncements(),
+        loadMyMaterials(),
+        loadGrading(),
+        loadSentNotifications()
+    ]);
+}
+
+async function loadStats() {
+    const { count: pending } = await supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'student').eq('status', 'pending').eq('department_id', myDeptId);
+    const { count: students } = await supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'student').eq('status', 'approved').eq('department_id', myDeptId);
+    const { count: courses } = await supabase.from('courses').select('*', { count: 'exact', head: true }).eq('department_id', myDeptId);
+    
+    document.getElementById('statPendingStudents').textContent = pending || 0;
+    document.getElementById('statStudents').textContent = students || 0;
+    document.getElementById('statCourses').textContent = courses || 0;
+}
+
+async function loadMyMaterials() {
+    const { data } = await supabase.from('materials').select('*, courses(name)').eq('uploaded_by', myId).order('created_at', { ascending: false });
+    const tbody = document.getElementById('myMaterialsTable');
+    tbody.innerHTML = '';
+    (data || []).forEach(m => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${m.title}</td>
+            <td><span class="badge">${m.type}</span></td>
+            <td>${m.courses?.name || 'N/A'}</td>
+            <td><span class="status-badge ${m.status}">${m.status}</span></td>
+            <td>
+                <div class="flex gap-2">
+                    <a href="${m.content_url}" target="_blank" class="btn btn-outline btn-sm"><i class="fas fa-eye"></i></a>
+                    <button class="btn btn-outline btn-sm" onclick="editMaterial('${m.id}')"><i class="fas fa-edit"></i></button>
+                    <button class="btn btn-outline btn-sm text-danger" onclick="deleteMaterial('${m.id}')"><i class="fas fa-trash"></i></button>
+                </div>
+            </td>`;
+        tbody.appendChild(tr);
+    });
+}
+
+async function loadStudents() {
+    const { data } = await supabase.from('profiles').select('*').eq('department_id', myDeptId).eq('role','student').order('created_at', {ascending:false});
+    const tbody = document.getElementById('studentTable');
+    tbody.innerHTML = '';
+    (data || []).forEach(s => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${s.name}</td>
+            <td class="text-xs text-muted">${s.id.substring(0,8)}...</td>
+            <td><span class="status-badge ${s.status}">${s.status}</span></td>
+            <td class="text-xs">${new Date(s.created_at).toLocaleDateString()}</td>
+            <td>
+                <div class="flex gap-2">
+                    <button class="btn btn-outline btn-sm" onclick="viewStudentResults('${s.id}', '${s.name}')">
+                        <i class="fas fa-poll mr-1"></i> Results
+                    </button>
+                    ${s.status === 'pending' ? `<button class="btn btn-primary btn-sm" onclick="approveStudent('${s.id}')">Approve</button>` : ''}
+                </div>
+            </td>`;
+        tbody.appendChild(tr);
+    });
+}
+
+async function loadCourses() {
+    const { data } = await supabase.from('courses').select('*').eq('department_id', myDeptId).order('name');
+    myCourses = data || [];
+    // Overview list (published only for display)
+    const list = document.getElementById('courseList');
+    const examList = document.getElementById('examCourseList');
+    const manageList = document.getElementById('manageCourseList');
+
+    list.innerHTML = '';
+    if (examList) examList.innerHTML = '<h3 class="mb-4">Select Course</h3>';
+    if (manageList) manageList.innerHTML = '';
+
+    myCourses.forEach(c => {
+        // Overview card (published only)
+        if (c.status === 'published') {
+          const card = document.createElement('div');
+          card.className = 'glass-card overflow-hidden p-0';
+          card.innerHTML = `
+              <div class="course-img-wrap">
+                ${c.image_url ? `<img src="${c.image_url}">` : `<i class="fas fa-book fa-3x" style="color:#cbd5e1;"></i>`}
+              </div>
+              <div class="p-4">
+                <h4 class="font-bold mb-1">${c.name}</h4>
+                <p class="text-xs text-muted">${c.description || ''}</p>
+              </div>`;
+          list.appendChild(card);
+        }
+
+        // Manage list (all statuses)
+        if (manageList) {
+          const statusLabel = { published: 'Published', pending_review: 'Pending Review', draft: 'Draft', rejected: 'Rejected' };
+          const mc = document.createElement('div');
+          mc.className = 'glass-card overflow-hidden p-0';
+          mc.innerHTML = `
+              <div class="course-img-wrap">
+                ${c.image_url ? `<img src="${c.image_url}">` : `<i class="fas fa-book fa-3x" style="color:#cbd5e1;"></i>`}
+              </div>
+              <div class="p-4">
+                <div class="flex justify-between items-start mb-1">
+                  <h4 class="font-bold">${c.name}</h4>
+                  <span class="status-badge ${c.status === 'published' ? 'approved' : c.status === 'pending_review' ? 'pending' : c.status}">${statusLabel[c.status] || c.status}</span>
+                </div>
+                <p class="text-xs text-muted mb-4 line-clamp-2">${c.description || ''}</p>
+                <button class="btn btn-primary w-full" onclick="openUploadMaterialModal('${c.id}', '${c.name.replace(/'/g, "&apos;")}')"><i class="fas fa-upload mr-2"></i>Upload Material</button>
+              </div>`;
+          manageList.appendChild(mc);
+        }
+
+        // Exam editor list (Allow for pending courses so academic can prepare everything)
+        if (examList) {
+          const exBtn = document.createElement('button');
+          exBtn.className = 'btn btn-outline w-full mb-2 text-left';
+          exBtn.textContent = c.name;
+          exBtn.onclick = () => openExamEditor(c.id, c.name);
+          examList.appendChild(exBtn);
+        }
+    });
+}
+
+window.openUploadMaterialModal = (courseId, courseName) => {
+    document.getElementById('uploadMatCourseId').value = courseId;
+    document.getElementById('uploadMatCourseLabel').textContent = `Course: ${courseName}`;
+    document.getElementById('matTitle').value = '';
+    document.getElementById('matFile').value = '';
+    openModal('uploadMaterialModal');
+}
+
+async function loadMaterials() {
+    const { data } = await supabase.from('materials').select('*, courses!inner(*)').eq('courses.department_id', myDeptId).order('created_at', {ascending:false});
+    const tbody = document.getElementById('materialTable');
+    tbody.innerHTML = '';
+    (data || []).forEach(m => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td class="text-sm font-medium">${m.title}</td>
+            <td class="text-xs">${m.courses.name}</td>
+            <td><span class="status-badge ${m.status}">${m.status.replace('_',' ')}</span></td>
+            <td><button class="btn btn-outline btn-sm text-danger" onclick="deleteMaterial('${m.id}')"><i class="fas fa-trash"></i></button></td>`;
+        tbody.appendChild(tr);
+    });
+}
+
+async function loadAnnouncements() {
+    const { data } = await supabase.from('announcements').select('*').eq('department_id', myDeptId).order('created_at', {ascending:false});
+    const list = document.getElementById('annList');
+    list.innerHTML = '';
+    (data || []).forEach(a => {
+        const div = document.createElement('div');
+        div.className = 'glass-card mb-4';
+        div.innerHTML = `
+            <div class="flex justify-between items-start mb-2">
+                <h4 class="font-bold">${a.title}</h4>
+                <button class="text-danger" onclick="deleteAnnouncement('${a.id}')"><i class="fas fa-trash-alt"></i></button>
+            </div>
+            <p class="text-sm text-muted">${a.body}</p>
+            <div class="text-[10px] text-muted mt-4">${new Date(a.created_at).toLocaleString()}</div>`;
+        list.appendChild(div);
+    });
+}
+
+/* ACTIONS */
+window.approveStudent = async (id) => {
+    const { error } = await supabase.from('profiles').update({status:'approved'}).eq('id',id);
+    if (error) ui.toast(error.message,'error');
+    else { ui.toast('Student approved!'); refreshData(); }
+}
+
+/* UPLOAD LOGIC */
+async function uploadFile(file) {
+    const ext = file.name.split('.').pop();
+    const path = `materials/${Date.now()}.${ext}`;
+    const { data, error } = await supabase.storage.from('media').upload(path, file);
+    if (error) throw error;
+    const { data: { publicUrl } } = supabase.storage.from('media').getPublicUrl(path);
+    return publicUrl;
+}
+
+document.getElementById('materialForm').onsubmit = async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('uploadBtn');
+    ui.setLoading(btn, true);
+    try {
+        const file = document.getElementById('matFile').files[0];
+        if (!file) throw new Error('Please select a file');
+        
+        const url = await uploadFile(file);
+
+        const { error } = await supabase.from('materials').insert({
+            course_id: document.getElementById('uploadMatCourseId').value,
+            uploaded_by: myId,
+            type: document.getElementById('matType').value,
+            title: document.getElementById('matTitle').value,
+            content_url: url,
+            status: 'pending_review'
+        });
+        if (error) throw error;
+        
+        ui.toast('✅ Submitted! Pending Admin review.');
+        e.target.reset();
+        closeModal('uploadMaterialModal');
+        refreshData();
+    } catch(e) { ui.toast(e.message, 'error'); }
+    ui.setLoading(btn, false, 'Submit for Review');
+}
+
+window.deleteMaterial = async (id) => {
+    if (!confirm('Delete this material?')) return;
+    const { error } = await supabase.from('materials').delete().eq('id', id);
+    if (error) ui.toast(error.message, 'error');
+    else { ui.toast('Deleted'); refreshData(); }
+}
+
+window.editMaterial = async (id) => {
+    const { data: m } = await supabase.from('materials').select('*').eq('id', id).single();
+    if (!m) return;
+    document.getElementById('editMatId').value = m.id;
+    document.getElementById('editMatTitle').value = m.title;
+    document.getElementById('editMatType').value = m.type;
+    openModal('editMaterialModal');
+}
+
+document.getElementById('updateMatBtn').onclick = async () => {
+    const btn = document.getElementById('updateMatBtn');
+    ui.setLoading(btn, true);
+    try {
+        const id = document.getElementById('editMatId').value;
+        const updates = {
+            title: document.getElementById('editMatTitle').value,
+            type: document.getElementById('editMatType').value,
+            status: 'pending_review' // Back to review after edit
+        };
+
+        const file = document.getElementById('editMatFile').files[0];
+        if (file) {
+            updates.content_url = await uploadFile(file);
+        }
+
+        const { error } = await supabase.from('materials').update(updates).eq('id', id);
+        if (error) throw error;
+        
+        ui.toast('Updated! Pending review again.');
+        closeModal('editMaterialModal');
+        refreshData();
+    } catch(e) { ui.toast(e.message, 'error'); }
+    ui.setLoading(btn, false, 'Save Changes');
+}
+
+document.getElementById('saveAnnBtn').onclick = async () => {
+    const title = document.getElementById('annTitle').value;
+    const body = document.getElementById('annBody').value;
+    const { error } = await supabase.from('announcements').insert({ department_id: myDeptId, title, body });
+    if (error) ui.toast(error.message,'error');
+    else { ui.toast('Posted!'); document.getElementById('annTitle').value=''; document.getElementById('annBody').value=''; refreshData(); }
+}
+
+document.getElementById('saveDeptSettingsBtn').onclick = async () => {
+    try {
+        const links = JSON.parse(document.getElementById('deptLinks').value);
+        const { error } = await supabase.from('departments').update({ external_links: links }).eq('id', myDeptId);
+        if (error) throw error;
+        ui.toast('Settings saved!');
+    } catch(e) { ui.toast('Invalid JSON format','error'); }
+}
+
+/* EXAM EDITOR */
+window.openExamEditor = async (courseId, courseName) => {
+    document.getElementById('examEditor').style.display = 'block';
+    document.getElementById('examEditorTitle').textContent = `Exam: ${courseName}`;
+    let { data: exam } = await supabase.from('exams').select('*').eq('course_id', courseId).single();
+    if (!exam) {
+        const { data: newExam } = await supabase.from('exams').insert({ course_id: courseId }).select().single();
+        exam = newExam;
+    }
+    currentExamId = exam.id;
+    
+    // Load Settings
+    document.getElementById('examDuration').value = exam.time_limit_minutes || 30;
+    if (exam.scheduled_at) {
+        const date = new Date(exam.scheduled_at);
+        date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
+        document.getElementById('examSchedule').value = date.toISOString().slice(0,16);
+    } else {
+        document.getElementById('examSchedule').value = '';
+    }
+
+    // Toggle publish button based on status
+    const pubBtn = document.getElementById('publishExamBtn');
+    if (exam.status === 'published') {
+        pubBtn.innerHTML = '<i class="fas fa-check-circle mr-1"></i> Exam Published';
+        pubBtn.classList.remove('btn-success');
+        pubBtn.classList.add('btn-outline');
+        pubBtn.disabled = true;
+    } else {
+        pubBtn.innerHTML = '<i class="fas fa-paper-plane mr-1"></i> Send Exam to Students';
+        pubBtn.classList.add('btn-success');
+        pubBtn.classList.remove('btn-outline');
+        pubBtn.disabled = false;
+    }
+
+    loadQuestions();
+}
+
+window.updateExamSettings = async () => {
+    const duration = document.getElementById('examDuration').value;
+    const schedule = document.getElementById('examSchedule').value;
+    
+    await supabase.from('exams').update({
+        time_limit_minutes: duration,
+        scheduled_at: schedule || null
+    }).eq('id', currentExamId);
+    ui.toast('Settings autosaved');
+}
+
+window.publishExam = async () => {
+    if (!confirm('Are you sure? This will make the exam visible to students.')) return;
+    const { error } = await supabase.from('exams').update({ status: 'published' }).eq('id', currentExamId);
+    if (error) ui.toast(error.message, 'error');
+    else {
+        ui.toast('Exam published successfully! 🚀');
+        const pubBtn = document.getElementById('publishExamBtn');
+        pubBtn.innerHTML = '<i class="fas fa-check-circle mr-1"></i> Exam Published';
+        pubBtn.classList.remove('btn-success');
+        pubBtn.classList.add('btn-outline');
+        pubBtn.disabled = true;
+    }
+}
+async function loadQuestions() {
+    const { data } = await supabase.from('questions').select('*').eq('exam_id', currentExamId).order('created_at');
+    const list = document.getElementById('questionsList');
+    list.innerHTML = (data || []).map((q, i) => {
+        let optionsHtml = '';
+        if (q.type === 'mcq') {
+            optionsHtml = `<div class="text-xs grid grid-cols-2 gap-1 mt-2">
+                <div class="${q.correct_answer==='a'?'text-success font-bold':''}">A: ${q.options.a}</div>
+                <div class="${q.correct_answer==='b'?'text-success font-bold':''}">B: ${q.options.b}</div>
+                <div class="${q.correct_answer==='c'?'text-success font-bold':''}">C: ${q.options.c}</div>
+                <div class="${q.correct_answer==='d'?'text-success font-bold':''}">D: ${q.options.d}</div>
+            </div>`;
+        } else if (q.type === 'boolean') {
+            optionsHtml = `<div class="text-xs mt-2 font-bold text-primary">Correct: ${q.correct_answer.toUpperCase()}</div>`;
+        } else {
+            optionsHtml = `<div class="text-xs mt-2 text-muted italic">Essay/Descriptive (Manual Grading)</div>`;
+        }
+
+        return `
+        <div class="p-4 bg-white border border-slate-200 rounded-xl relative hover:shadow-md transition-all">
+            <div class="flex justify-between items-start">
+                <div class="flex-1">
+                    <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-slate-100 text-slate-500 mb-2 inline-block">${q.type}</span>
+                    <p class="font-bold text-slate-800">${i+1}. ${q.question}</p>
+                    ${optionsHtml}
+                </div>
+                <div class="flex gap-2">
+                    <button class="btn btn-outline btn-sm" onclick="openEditQuestion('${q.id}')"><i class="fas fa-edit"></i></button>
+                    <button class="btn btn-outline btn-sm text-danger" onclick="deleteQuestion('${q.id}')"><i class="fas fa-trash"></i></button>
+                </div>
+            </div>
+        </div>`;
+    }).join('') || '<div class="text-center p-8 text-muted border-2 border-dashed rounded-xl">No questions yet. Click "Add Question" to start.</div>';
+}
+window.deleteQuestion = async (id) => {
+    if(!confirm('Are you sure you want to delete this question?')) return;
+    const { error } = await supabase.from('questions').delete().eq('id', id);
+    if(error) ui.toast(error.message, 'error');
+    else loadQuestions();
+};
+window.openAddQuestion = () => {
+    document.getElementById('qModalTitle').textContent = 'Add Question';
+    document.getElementById('editQuestionId').value = '';
+    document.getElementById('qText').value = '';
+    document.getElementById('optA').value = '';
+    document.getElementById('optB').value = '';
+    document.getElementById('optC').value = '';
+    document.getElementById('optD').value = '';
+    document.getElementById('qModelAnswer').value = '';
+    document.getElementById('qType').value = 'mcq';
+    toggleQuestionType();
+    openModal('questionModal');
+};
+
+window.openEditQuestion = async (id) => {
+    const { data: q } = await supabase.from('questions').select('*').eq('id', id).single();
+    if (!q) return;
+    document.getElementById('qModalTitle').textContent = 'Edit Question';
+    document.getElementById('editQuestionId').value = q.id;
+    document.getElementById('qType').value = q.type;
+    document.getElementById('qText').value = q.question;
+    
+    if (q.type === 'mcq') {
+        document.getElementById('optA').value = q.options.a || '';
+        document.getElementById('optB').value = q.options.b || '';
+        document.getElementById('optC').value = q.options.c || '';
+        document.getElementById('optD').value = q.options.d || '';
+        document.getElementById('qCorrect').value = q.correct_answer;
+    } else if (q.type === 'boolean') {
+        document.getElementById('qCorrectBool').value = q.correct_answer;
+    } else {
+        document.getElementById('qModelAnswer').value = q.model_answer || '';
+    }
+    
+    toggleQuestionType();
+    openModal('questionModal');
+};
+
+document.getElementById('saveQuestionBtn').onclick = async () => {
+    const type = document.getElementById('qType').value;
+    const editId = document.getElementById('editQuestionId').value;
+    
+    const q = {
+        exam_id: currentExamId,
+        question: document.getElementById('qText').value.trim(),
+        type: type
+    };
+    if (!q.question) { ui.toast('Question text is required', 'error'); return; }
+
+    if (type === 'mcq') {
+        const a = document.getElementById('optA').value.trim();
+        const b = document.getElementById('optB').value.trim();
+        const c = document.getElementById('optC').value.trim();
+        const d = document.getElementById('optD').value.trim();
+        if (!a || !b || !c || !d) { ui.toast('All 4 options are required for MCQ', 'error'); return; }
+        q.options = { a, b, c, d };
+        q.correct_answer = document.getElementById('qCorrect').value;
+    } else if (type === 'boolean') {
+        q.options = {};
+        q.correct_answer = document.getElementById('qCorrectBool').value;
+    } else {
+        q.options = {};
+        q.correct_answer = '';
+        q.model_answer = document.getElementById('qModelAnswer').value.trim();
+    }
+
+    let error;
+    if (editId) {
+        const { error: err } = await supabase.from('questions').update(q).eq('id', editId);
+        error = err;
+    } else {
+        const { error: err } = await supabase.from('questions').insert(q);
+        error = err;
+    }
+
+    if (error) ui.toast(error.message,'error');
+    else {
+        ui.toast(editId ? 'Question updated!' : 'Question added!');
+        closeModal('questionModal');
+        loadQuestions();
+    }
+}
+
+// Toggle MCQ vs Essay form fields
+window.toggleQuestionType = () => {
+    const type = document.getElementById('qType').value;
+    document.getElementById('mcqOptions').style.display = type === 'mcq' ? 'block' : 'none';
+    document.getElementById('booleanOptions').style.display = type === 'boolean' ? 'block' : 'none';
+    document.getElementById('essayOptions').style.display = type === 'essay' ? 'block' : 'none';
+}
+
+/* UTILS */
+function setupNav() {
+    document.querySelectorAll('.nav-link[data-view]').forEach(link => {
+        link.onclick = () => {
+            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+            document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+            link.classList.add('active');
+            document.getElementById(link.dataset.view + 'Section').classList.add('active');
+            document.getElementById('viewTitle').textContent = link.querySelector('span').textContent.trim();
+            const sidebar = document.getElementById('sidebar');
+            if(sidebar.classList.contains('open')) sidebar.classList.remove('open');
+        };
+    });
+}
+
+function setupNotifications() {
+  const btn = document.getElementById('sendNotifBtn');
+  if (btn) btn.onclick = async () => {
+    const title = document.getElementById('notifTitle').value.trim();
+    const message = document.getElementById('notifMsg').value.trim();
+    if (!title || !message) { ui.toast('Title and message required', 'error'); return; }
+    ui.setLoading(btn, true);
+    const { error } = await supabase.from('notifications').insert({
+      department_id: myDeptId,
+      sender_id: myId,
+      title,
+      message
+    });
+    ui.setLoading(btn, false, 'Send to All Students');
+    if (error) ui.toast(error.message, 'error');
+    else {
+      ui.toast('Notification sent!');
+      document.getElementById('notifTitle').value = '';
+      document.getElementById('notifMsg').value = '';
+      loadSentNotifications();
+    }
+  };
+}
+
+async function loadSentNotifications() {
+  const { data } = await supabase.from('notifications')
+    .select('*')
+    .eq('department_id', myDeptId)
+    .order('created_at', { ascending: false });
+  const list = document.getElementById('notifSentList');
+  if (!list) return;
+  list.innerHTML = '';
+  (data || []).forEach(n => {
+    const div = document.createElement('div');
+    div.className = 'glass-card mb-4';
+    div.innerHTML = `
+      <div class="flex justify-between items-start mb-2">
+        <h4 class="font-bold">${n.title}</h4>
+        <span class="text-[10px] text-muted">${new Date(n.created_at).toLocaleString()}</span>
+      </div>
+      <p class="text-sm text-muted">${n.message}</p>`;
+    list.appendChild(div);
+  });
+  if (!data?.length) list.innerHTML = '<p class="text-muted">No notifications sent yet.</p>';
+}
+
+async function loadGrading() {
+  // Load results where is_graded = false (have essay questions)
+  const courseIds = myCourses.filter(c => c.status === 'published').map(c => c.id);
+  if (!courseIds.length) return;
+  const { data: exams } = await supabase.from('exams').select('id').in('course_id', courseIds);
+  if (!exams?.length) return;
+  const examIds = exams.map(e => e.id);
+  const { data: results } = await supabase.from('results')
+    .select('*, student:profiles!results_student_id_fkey(name), exams!inner(course_id, courses(name))')
+    .in('exam_id', examIds)
+    .eq('is_graded', false)
+    .order('submitted_at', { ascending: true });
+
+  const list = document.getElementById('gradingList');
+  if (!list) return;
+  list.innerHTML = '';
+
+  if (!results?.length) {
+    list.innerHTML = '<div class="glass-card text-center text-muted p-10"><i class="fas fa-check-double fa-2x mb-4"></i><p>All results are graded! ✅</p></div>';
+    return;
+  }
+
+  for (const r of results) {
+    // Get essay questions for this exam
+    const { data: questions } = await supabase.from('questions')
+      .select('*').eq('exam_id', r.exam_id).eq('type', 'essay');
+    const div = document.createElement('div');
+    div.className = 'glass-card';
+    let essayHtml = (questions || []).map(q => {
+      const studentAnswer = r.answers?.[q.id] || '<em class="text-muted">No answer provided</em>';
+      return `
+        <div class="p-4 border rounded mb-4">
+          <p class="font-bold mb-2"><i class="fas fa-question-circle text-primary mr-2"></i>${q.question}</p>
+          <div class="mb-2"><span class="text-xs font-bold text-muted uppercase">Student Answer:</span><p class="text-sm mt-1 p-3 bg-slate-50 rounded">${studentAnswer}</p></div>
+          ${q.model_answer ? `<div><span class="text-xs font-bold text-muted uppercase">Model Answer:</span><p class="text-sm mt-1 p-3 bg-green-50 rounded text-green-800">${q.model_answer}</p></div>` : ''}
+        </div>`;
+    }).join('');
+
+    div.innerHTML = `
+      <div class="flex justify-between items-center mb-4">
+        <div>
+          <h4 class="font-bold">${r.student?.name || 'Student'}</h4>
+          <p class="text-xs text-muted">${r.exams?.courses?.name || 'Course'} | Submitted: ${new Date(r.submitted_at).toLocaleDateString()}</p>
+        </div>
+        <span class="status-badge pending">Needs Grading</span>
+      </div>
+      ${essayHtml}
+      <div class="flex gap-3 items-center mt-4">
+        <input type="number" id="score_${r.id}" class="form-input" style="width:100px;" placeholder="Score %" min="0" max="100" value="${r.score || 0}">
+        <input type="text" id="comment_${r.id}" class="form-input flex-1" placeholder="Grader comment (optional)">
+        <button class="btn btn-primary" onclick="submitGrade('${r.id}')">Save Grade</button>
+      </div>`;
+    list.appendChild(div);
+  }
+}
+
+window.submitGrade = async (resultId) => {
+  const scoreEl = document.getElementById(`score_${resultId}`);
+  const commentEl = document.getElementById(`comment_${resultId}`);
+  const score = parseFloat(scoreEl.value);
+  if (isNaN(score) || score < 0 || score > 100) { ui.toast('Score must be 0-100', 'error'); return; }
+  const { error } = await supabase.from('results').update({
+    score,
+    is_graded: true,
+    grader_comment: commentEl.value || null
+  }).eq('id', resultId);
+  if (error) ui.toast(error.message, 'error');
+  else { ui.toast('Grade saved! ✅'); loadGrading(); }
+}
+
+
+function setupMobileMenu() {
+    const btn = document.getElementById('mobileMenuBtn');
+    const sidebar = document.getElementById('sidebar');
+    if(btn && sidebar) btn.onclick = () => sidebar.classList.toggle('open');
+}
+async function viewStudentResults(studentId, studentName) {
+    document.getElementById('studentResultsTitle').textContent = `Results: ${studentName}`;
+    const { data, error } = await supabase.from('results')
+        .select('*, exams(title, courses(name))')
+        .eq('student_id', studentId)
+        .order('submitted_at', { ascending: false });
+    
+    const tbody = document.getElementById('studentResultsTable');
+    tbody.innerHTML = '';
+    
+    if (!data?.length) {
+        tbody.innerHTML = '<tr><td colspan="4" class="text-center p-8 text-muted">No exams taken yet.</td></tr>';
+    } else {
+        data.forEach(r => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>
+                    <div class="font-bold">${r.exams?.title || 'Final Exam'}</div>
+                    <div class="text-[10px] text-muted">${r.exams?.courses?.name || 'Course'}</div>
+                </td>
+                <td><span class="font-bold text-primary">${r.score}%</span></td>
+                <td><span class="status-badge ${r.is_graded ? 'approved' : 'pending'}">${r.is_graded ? 'Graded' : 'Pending'}</span></td>
+                <td class="text-xs text-muted">${new Date(r.submitted_at).toLocaleDateString()}</td>`;
+            tbody.appendChild(tr);
+        });
+    }
+    openModal('studentResultsModal');
+}
+
+window.closeModal = (id) => document.getElementById(id).classList.remove('open');
+window.openModal = (id) => document.getElementById(id).classList.add('open');
+
+document.getElementById('logoutBtn').onclick = () => routing.logout();
+document.getElementById('langToggle').onclick = () => i18n.toggle();
+
+function setupRealtime() {
+    supabase.channel('academic_sync')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => refreshData())
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'departments' }, () => refreshData())
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'courses' }, () => refreshData())
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'materials' }, () => refreshData())
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'announcements' }, () => refreshData())
+        .subscribe();
+}
+
+init();
+setupRealtime();
+</script>
+</body>
+</html>

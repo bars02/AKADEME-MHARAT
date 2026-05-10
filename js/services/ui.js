@@ -1,23 +1,33 @@
 /* 
-  Global UI Service
-  - Toast notifications
-  - Modals
-  - Loading states
+  Global UI Service v2.0
+  - Premium Toast notifications with icons
+  - Smooth loading states
+  - Modal utilities
 */
 
 export const ui = {
     toast(message, type = 'success') {
-        let container = document.getElementById('toast-container');
+        let container = document.getElementById('toastContainer');
         if (!container) {
             container = document.createElement('div');
-            container.id = 'toast-container';
+            container.id = 'toastContainer';
             container.className = 'toast-container';
             document.body.appendChild(container);
         }
 
+        const icons = {
+            success: 'fa-check-circle',
+            error: 'fa-exclamation-circle',
+            warning: 'fa-exclamation-triangle',
+            info: 'fa-info-circle'
+        };
+
         const el = document.createElement('div');
         el.className = `toast ${type}`;
+        el.style.animation = 'toastIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards';
+        
         el.innerHTML = `
+            <i class="fas ${icons[type] || icons.info}"></i>
             <div class="toast-content">${message}</div>
         `;
         
@@ -25,20 +35,20 @@ export const ui = {
 
         // Auto remove
         setTimeout(() => {
-            el.style.opacity = '0';
-            el.style.transform = 'translateY(-20px)';
+            el.style.animation = 'toastOut 0.5s ease-in forwards';
             setTimeout(() => el.remove(), 500);
         }, 4000);
     },
 
     setLoading(btn, isLoading, originalText) {
+        if (!btn) return;
         if (isLoading) {
             btn.disabled = true;
             btn.dataset.original = btn.innerHTML;
-            btn.innerHTML = '<span class="loading-spinner"></span>';
+            btn.innerHTML = `<i class="fas fa-circle-notch fa-spin"></i> ${originalText || 'Loading...'}`;
         } else {
             btn.disabled = false;
-            btn.innerHTML = btn.dataset.original || originalText;
+            btn.innerHTML = btn.dataset.original || originalText || 'Submit';
         }
     }
 };
