@@ -285,6 +285,10 @@
             <option value="essay">Essay — Descriptive (Manual Grading)</option>
           </select>
         </div>
+        <div class="form-group mb-4">
+          <label>Points (Weight)</label>
+          <input type="number" id="qPoints" class="form-input" min="0.5" step="0.5" value="1" placeholder="e.g. 1.0">
+        </div>
         <div class="form-group mb-4"><label>Question</label><textarea id="qText" class="form-input" rows="3"></textarea></div>
         
         <!-- MCQ Options -->
@@ -794,7 +798,7 @@ async function loadQuestions() {
         <div class="p-4 bg-white border border-slate-200 rounded-xl relative hover:shadow-md transition-all">
             <div class="flex justify-between items-start">
                 <div class="flex-1">
-                    <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-slate-100 text-slate-500 mb-2 inline-block">${q.type}</span>
+                    <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-slate-100 text-slate-500 mb-2 inline-block">${q.type} (${q.points || 1} Pts)</span>
                     <p class="font-bold text-slate-800">${i+1}. ${q.question}</p>
                     ${optionsHtml}
                 </div>
@@ -821,6 +825,7 @@ window.openAddQuestion = () => {
     document.getElementById('optC').value = '';
     document.getElementById('optD').value = '';
     document.getElementById('qModelAnswer').value = '';
+    document.getElementById('qPoints').value = '1';
     document.getElementById('qType').value = 'mcq';
     toggleQuestionType();
     openModal('questionModal');
@@ -833,6 +838,7 @@ window.openEditQuestion = async (id) => {
     document.getElementById('editQuestionId').value = q.id;
     document.getElementById('qType').value = q.type;
     document.getElementById('qText').value = q.question;
+    document.getElementById('qPoints').value = q.points || 1;
     
     if (q.type === 'mcq') {
         document.getElementById('optA').value = q.options.a || '';
@@ -857,6 +863,7 @@ document.getElementById('saveQuestionBtn').onclick = async () => {
     const q = {
         exam_id: currentExamId,
         question: document.getElementById('qText').value.trim(),
+        points: parseFloat(document.getElementById('qPoints').value) || 1.0,
         type: type
     };
     if (!q.question) { ui.toast('Question text is required', 'error'); return; }
@@ -987,51 +994,85 @@ async function loadGrading() {
   }
 
   for (const r of results) {
-    // Get essay questions for this exam
     const { data: questions } = await supabase.from('questions')
       .select('*').eq('exam_id', r.exam_id).eq('type', 'essay');
+    
     const div = document.createElement('div');
     div.className = 'glass-card';
+    const oldEssayScores = r.essay_scores || {};
+    
     let essayHtml = (questions || []).map(q => {
       const studentAnswer = r.answers?.[q.id] || '<em class="text-muted">No answer provided</em>';
+      const qPoints = q.points || 1;
+      const currentScore = oldEssayScores[q.id] !== undefined ? oldEssayScores[q.id] : '';
       return `
-        <div class="p-4 border rounded mb-4">
-          <p class="font-bold mb-2"><i class="fas fa-question-circle text-primary mr-2"></i>${q.question}</p>
-          <div class="mb-2"><span class="text-xs font-bold text-muted uppercase">Student Answer:</span><p class="text-sm mt-1 p-3 bg-slate-50 rounded">${studentAnswer}</p></div>
-          ${q.model_answer ? `<div><span class="text-xs font-bold text-muted uppercase">Model Answer:</span><p class="text-sm mt-1 p-3 bg-green-50 rounded text-green-800">${q.model_answer}</p></div>` : ''}
+        <div class="p-4 border rounded mb-4 bg-white">
+          <div class="flex justify-between items-start mb-2">
+            <p class="font-bold"><i class="fas fa-question-circle text-primary mr-2"></i>${q.question}</p>
+            <span class="badge" style="background:#f1f5f9;color:#64748b;">Out of ${qPoints} pts</span>
+          </div>
+          <div class="mb-3"><span class="text-xs font-bold text-muted uppercase">Student Answer:</span><p class="text-sm mt-1 p-3 bg-slate-50 rounded">${studentAnswer}</p></div>
+          ${q.model_answer ? `<div class="mb-3"><span class="text-xs font-bold text-muted uppercase">Model Answer:</span><p class="text-sm mt-1 p-3 bg-green-50 rounded text-green-800">${q.model_answer}</p></div>` : ''}
+          <div class="flex items-center gap-3 pt-3 border-t border-slate-100">
+            <label class="text-sm font-bold text-slate-700">Assign Points:</label>
+            <input type="number" id="grade_${r.id}_${q.id}" class="form-input" style="width:100px;" placeholder="0-${qPoints}" min="0" max="${qPoints}" step="0.5" value="${currentScore}">
+          </div>
         </div>`;
     }).join('');
 
     div.innerHTML = `
-      <div class="flex justify-between items-center mb-4">
+      <div class="flex justify-between items-center mb-4 border-b pb-4">
         <div>
-          <h4 class="font-bold">${r.student?.name || 'Student'}</h4>
+          <h4 class="font-bold text-lg">${r.student?.name || 'Student'}</h4>
           <p class="text-xs text-muted">${r.exams?.courses?.name || 'Course'} | Submitted: ${new Date(r.submitted_at).toLocaleDateString()}</p>
+          <p class="text-sm mt-1 font-bold text-primary">Auto MCQ Score: ${r.mcq_score || 0} pts</p>
         </div>
         <span class="status-badge pending">Needs Grading</span>
       </div>
       ${essayHtml}
       <div class="flex gap-3 items-center mt-4">
-        <input type="number" id="score_${r.id}" class="form-input" style="width:100px;" placeholder="Score %" min="0" max="100" value="${r.score || 0}">
         <input type="text" id="comment_${r.id}" class="form-input flex-1" placeholder="Grader comment (optional)">
-        <button class="btn btn-primary" onclick="submitGrade('${r.id}')">Save Grade</button>
+        <button class="btn btn-primary px-8" onclick="submitGrade('${r.id}', '${r.exam_id}')">Finalize & Save Grade</button>
       </div>`;
     list.appendChild(div);
   }
 }
 
-window.submitGrade = async (resultId) => {
-  const scoreEl = document.getElementById(`score_${resultId}`);
+window.submitGrade = async (resultId, examId) => {
+  const { data: resultData } = await supabase.from('results').select('mcq_score').eq('id', resultId).single();
+  const mcqScore = resultData?.mcq_score || 0;
+
+  const { data: questions } = await supabase.from('questions').select('id, points').eq('exam_id', examId).eq('type', 'essay');
+  
+  let totalEssayScore = 0;
+  const essayScoresJson = {};
+
+  for (const q of (questions || [])) {
+    const scoreEl = document.getElementById(`grade_${resultId}_${q.id}`);
+    if (scoreEl) {
+      let val = parseFloat(scoreEl.value);
+      if (isNaN(val)) val = 0;
+      if (val < 0 || val > (q.points || 1)) {
+        ui.toast(`Score for essay must be between 0 and ${q.points || 1}`, 'error');
+        return;
+      }
+      essayScoresJson[q.id] = val;
+      totalEssayScore += val;
+    }
+  }
+
+  const finalScore = mcqScore + totalEssayScore;
   const commentEl = document.getElementById(`comment_${resultId}`);
-  const score = parseFloat(scoreEl.value);
-  if (isNaN(score) || score < 0 || score > 100) { ui.toast('Score must be 0-100', 'error'); return; }
+
   const { error } = await supabase.from('results').update({
-    score,
+    score: finalScore,
+    essay_scores: essayScoresJson,
     is_graded: true,
-    grader_comment: commentEl.value || null
+    grader_comment: commentEl ? commentEl.value : null
   }).eq('id', resultId);
+
   if (error) ui.toast(error.message, 'error');
-  else { ui.toast('Grade saved! ✅'); loadGrading(); }
+  else { ui.toast('Grade finalized! ✅', 'success'); loadGrading(); loadStats(); }
 }
 
 

@@ -271,15 +271,30 @@
       </div>
       
       <div id="examEngine" style="display:none" class="max-w-2xl mx-auto">
-          <div class="flex justify-between items-center mb-6 bg-red-50 p-4 rounded-xl border border-red-100">
-            <div class="font-bold text-danger">
+          <div class="flex justify-between items-center mb-6 p-4 rounded-xl border" id="timerBox" style="background:#f8fafc;border-color:var(--border);">
+            <div class="font-bold" id="timerLabel" style="color:var(--text-dark);">
               <i class="fas fa-clock mr-2"></i>Time Remaining
             </div>
-            <div id="examTimer" class="font-bold text-2xl text-danger">00:00</div>
+            <div id="examTimer" class="font-bold text-2xl" style="color:var(--text-dark);">00:00</div>
           </div>
           <div id="questionsContainer"></div>
           <button class="btn btn-primary w-full py-4 mt-8 text-lg" id="submitExamBtn" onclick="submitExam(false)">Submit Final Answers</button>
       </div>
+
+      <!-- ===== EXAM RESULT CARD ===== -->
+      <div id="examResultCard" style="display:none;" class="max-w-xl mx-auto">
+        <div class="glass-card text-center py-16 px-8">
+          <div id="examResultIcon" style="font-size:5rem;margin-bottom:1.5rem;"></div>
+          <div id="examResultScore" style="font-size:5rem;font-weight:800;line-height:1;margin-bottom:1rem;"></div>
+          <h3 id="examResultTitle" class="text-2xl font-bold mb-3"></h3>
+          <p id="examResultMsg" class="text-muted mb-8 mx-auto" style="max-width:26rem;"></p>
+          <div class="flex gap-4 justify-center flex-wrap">
+            <button onclick="window.resetExamUI()" class="btn btn-outline"><i class="fas fa-redo mr-2"></i>Back to Exams</button>
+            <button onclick="document.querySelector('.nav-link[data-view=\'results\']').click(); loadResults();" class="btn btn-primary"><i class="fas fa-poll-h mr-2"></i>View All Results</button>
+          </div>
+        </div>
+      </div>
+
     </section>
 
     <!-- RESULTS -->
@@ -591,7 +606,13 @@ let examTimerInterval = null;
 window.resetExamUI = () => {
     document.getElementById('examIntro').style.display = 'block';
     document.getElementById('examEngine').style.display = 'none';
-    if(examTimerInterval) clearInterval(examTimerInterval);
+    document.getElementById('examResultCard').style.display = 'none';
+    if (examTimerInterval) clearInterval(examTimerInterval);
+    // Reset timer appearance
+    const timerEl = document.getElementById('examTimer');
+    if (timerEl) { timerEl.textContent = '00:00'; timerEl.style.color = 'var(--text-dark)'; }
+    const timerBox = document.getElementById('timerBox');
+    if (timerBox) { timerBox.style.background = '#f8fafc'; timerBox.style.borderColor = 'var(--border)'; }
 };
 
 window.startExam = async () => {
@@ -602,18 +623,36 @@ window.startExam = async () => {
     if (error || !exam || !exam.questions?.length) { ui.toast('No exam available for this course yet.', 'warning'); return; }
     
     currentExamData = exam;
-    let timeLeft = (exam.time_limit_minutes || 30) * 60;
+    // Wall-clock timer: immune to tab switching & browser throttling
+    const totalSeconds = (exam.time_limit_minutes || 30) * 60;
+    const examStartTime = Date.now();
     const timerEl = document.getElementById('examTimer');
+    const timerBox = document.getElementById('timerBox');
+    const timerLabel = document.getElementById('timerLabel');
     
+    if (examTimerInterval) clearInterval(examTimerInterval);
     examTimerInterval = setInterval(() => {
-        const mins = Math.floor(timeLeft / 60);
-        const secs = timeLeft % 60;
+        const elapsed = Math.floor((Date.now() - examStartTime) / 1000);
+        const remaining = totalSeconds - elapsed;
+        if (remaining <= 0) {
+            clearInterval(examTimerInterval);
+            window.submitExam(true);
+            return;
+        }
+        const mins = Math.floor(remaining / 60);
+        const secs = remaining % 60;
         timerEl.textContent = `${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
-        if (timeLeft <= 0) { clearInterval(examTimerInterval); window.submitExam(true); }
-        timeLeft--;
+        // Turn red only in last 5 minutes
+        if (remaining <= 300) {
+            timerEl.style.color = 'var(--danger)';
+            timerBox.style.background = '#fef2f2';
+            timerBox.style.borderColor = '#fecaca';
+            timerLabel.style.color = 'var(--danger)';
+        }
     }, 1000);
 
     document.getElementById('examIntro').style.display = 'none';
+    document.getElementById('examResultCard').style.display = 'none';
     document.getElementById('examEngine').style.display = 'block';
 
     const questions = (exam.questions || []).sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
@@ -626,8 +665,11 @@ window.startExam = async () => {
         card.dataset.qid = q.id;
         card.dataset.qtype = q.type || 'mcq';
 
+        const qPoints = q.points || 1;
+        const ptsHtml = `<span class="badge float-right text-xs" style="background:#f1f5f9;color:#64748b;padding:4px 8px;border-radius:12px;">${qPoints} Pts</span>`;
+
         if ((q.type || 'mcq') === 'mcq') {
-            card.innerHTML = `<p class="font-bold text-lg mb-6">${i+1}. ${q.question}</p>`;
+            card.innerHTML = `<p class="font-bold text-lg mb-6">${i+1}. ${q.question} ${ptsHtml}</p>`;
             Object.keys(q.options || {}).forEach(key => {
                 const b = document.createElement('button');
                 b.className = 'opt-btn';
@@ -640,7 +682,7 @@ window.startExam = async () => {
                 card.appendChild(b);
             });
         } else if (q.type === 'boolean') {
-            card.innerHTML = `<p class="font-bold text-lg mb-6">${i+1}. ${q.question}</p>`;
+            card.innerHTML = `<p class="font-bold text-lg mb-6">${i+1}. ${q.question} ${ptsHtml}</p>`;
             ['True', 'False'].forEach(val => {
                 const b = document.createElement('button');
                 b.className = 'opt-btn';
@@ -652,8 +694,8 @@ window.startExam = async () => {
                 };
                 card.appendChild(b);
             });
-        } else if (q.type === 'short_answer') {
-            card.innerHTML = `<p class="font-bold text-lg mb-4">${i+1}. ${q.question}</p>
+        } else if (q.type === 'essay' || q.type === 'short_answer') {
+            card.innerHTML = `<p class="font-bold text-lg mb-4">${i+1}. ${q.question} ${ptsHtml}</p>
                 <textarea class="form-input w-full" rows="3" placeholder="Type your answer here..." onchange="this.parentElement.dataset.choice = this.value"></textarea>`;
         }
         container.appendChild(card);
@@ -661,37 +703,70 @@ window.startExam = async () => {
 };
 
 window.submitExam = async (isAuto = false) => {
-    if (!isAuto && !confirm('Are you sure you want to submit your answers?')) return;
-    if(examTimerInterval) clearInterval(examTimerInterval);
-    
+    if (!isAuto && !confirm('Are you sure you want to submit your final answers?')) return;
+    if (examTimerInterval) clearInterval(examTimerInterval);
+
     const cards = document.querySelectorAll('.q-card');
     const answers = {};
-    cards.forEach(c => {
-        if(c.dataset.choice) answers[c.dataset.qid] = c.dataset.choice;
-    });
+    cards.forEach(c => { if (c.dataset.choice) answers[c.dataset.qid] = c.dataset.choice; });
 
     const btn = document.getElementById('submitExamBtn');
     btn.disabled = true;
-    btn.textContent = 'Submitting...';
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Submitting...';
 
-    const { error } = await supabase.from('results').insert({
-        student_id: profile.id, // FIXED: was user_id
-        exam_id: currentExamData.id,
-        answers: answers,
-        score: null,
-        passed: false,
-        is_graded: false
-    });
+    try {
+        // Use the auto-grading RPC — MCQ graded instantly, essays sent to academic
+        const { data: result, error } = await supabase.rpc('submit_exam', {
+            p_exam_id: currentExamData.id,
+            p_answers: answers
+        });
+        if (error) throw error;
 
-    if (error) {
-        ui.toast('Failed to submit exam: ' + error.message, 'error');
-        btn.disabled = false;
-        btn.textContent = 'Submit Final Answers';
-    } else {
-        ui.toast('Exam submitted successfully! Pending review.', 'success');
-        resetExamUI();
-        document.querySelector('.nav-link[data-view="results"]').click();
+        // Hide exam engine, show result card
+        document.getElementById('examEngine').style.display = 'none';
+        document.getElementById('examIntro').style.display = 'none';
+
+        const score     = result.score ?? 0;
+        const maxScore  = result.max_score ?? 0;
+        const hasEssay  = result.has_essay ?? false;
+        
+        // Pass if they got 60% of the possible total points
+        const passed    = maxScore > 0 ? (score / maxScore) >= 0.6 : true;
+        
+        const iconEl    = document.getElementById('examResultIcon');
+        const scoreEl   = document.getElementById('examResultScore');
+        const titleEl   = document.getElementById('examResultTitle');
+        const msgEl     = document.getElementById('examResultMsg');
+
+        if (hasEssay) {
+            iconEl.textContent  = '📋';
+            scoreEl.textContent = result.total > 0 ? `${score} / ${maxScore}` : '—';
+            scoreEl.style.color = 'var(--warning)';
+            titleEl.textContent = 'Submitted for Review';
+            msgEl.textContent   = result.total > 0
+                ? `Auto-graded MCQ score: ${score} points. Your essay answers are pending review by your Academic.`
+                : 'Your answers have been submitted. Your Academic will review and grade your exam.';
+        } else if (passed) {
+            iconEl.textContent  = '🎉';
+            scoreEl.textContent = `${score} / ${maxScore}`;
+            scoreEl.style.color = 'var(--success)';
+            titleEl.textContent = 'Congratulations! You Passed!';
+            msgEl.textContent   = `Excellent work! You answered correctly and earned ${score} points.`;
+        } else {
+            iconEl.textContent  = '📖';
+            scoreEl.textContent = `${score} / ${maxScore}`;
+            scoreEl.style.color = 'var(--danger)';
+            titleEl.textContent = 'Keep Studying!';
+            msgEl.textContent   = `You scored ${score} out of ${maxScore} points. A minimum of 60% is required to pass. Review your materials and try again.`;
+        }
+
+        document.getElementById('examResultCard').style.display = 'block';
         loadResults();
+
+    } catch (err) {
+        ui.toast('Failed to submit: ' + err.message, 'error');
+        btn.disabled = false;
+        btn.innerHTML = 'Submit Final Answers';
     }
 };
 
@@ -715,33 +790,53 @@ async function loadAnnouncements() {
 
 async function loadResults() {
     const { data } = await supabase.from('results')
-      .select('*, exams!inner(courses(name))')
-      .eq('student_id', profile.id)  // FIXED: was user_id
-      .order('submitted_at', {ascending: false});
+      .select('*, exams!inner(title, courses(name))')
+      .eq('student_id', profile.id)
+      .order('submitted_at', { ascending: false });
+
     const tbody = document.getElementById('resultsTable');
     tbody.innerHTML = '';
     document.getElementById('statCompleted').textContent = data?.length || 0;
-    // Calculate average score from graded results
-    const graded = (data || []).filter(r => r.is_graded !== false);
+
+    // Average score % from auto-graded results only
+    const graded = (data || []).filter(r => r.is_graded === true && r.score !== null && r.max_score > 0);
     if (graded.length > 0) {
-      const avg = graded.reduce((sum, r) => sum + (r.score || 0), 0) / graded.length;
-      document.getElementById('statAvgScore').textContent = Math.round(avg) + '%';
+        const totalPct = graded.reduce((sum, r) => sum + (parseFloat(r.score) / parseFloat(r.max_score)), 0);
+        const avg = (totalPct / graded.length) * 100;
+        document.getElementById('statAvgScore').textContent = Math.round(avg) + '%';
+    } else {
+        document.getElementById('statAvgScore').textContent = '—';
     }
-    (data || []).forEach(r => {
-        const isGraded = r.is_graded !== false;
-        const statusText = !isGraded ? 'Pending Review' : (r.passed ? 'Passed' : (r.score !== null ? 'Completed' : 'Submitted'));
-        const statusClass = !isGraded ? 'pending' : (r.passed ? 'approved' : 'published');
+
+    if (!data?.length) {
+        tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted p-8"><i class="fas fa-clipboard-list fa-2x mb-3 text-slate-300"></i><br>No exam results yet</td></tr>';
+        return;
+    }
+
+    data.forEach(r => {
+        const isGraded  = r.is_graded === true;
+        const score     = r.score !== null ? parseFloat(r.score) : null;
+        const maxScore  = r.max_score !== null ? parseFloat(r.max_score) : 100;
+        const pct       = maxScore > 0 && score !== null ? (score / maxScore) * 100 : 0;
+        const passed    = score !== null && pct >= 60;
+        
+        const statusText  = !isGraded ? 'Pending Review' : (passed ? 'Passed ✓' : 'Failed');
+        const statusClass = !isGraded ? 'pending'        : (passed ? 'approved' : 'rejected');
+        const scoreHtml   = isGraded && score !== null
+            ? `<span class="font-bold text-xl" style="color:${passed ? 'var(--success)' : 'var(--danger)'}">${score} <span class="text-xs text-muted">/ ${maxScore}</span></span>`
+            : `<span class="text-muted text-sm">Awaiting Review</span>`;
+
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td>${r.exams?.courses?.name || 'N/A'}</td>
-            <td><span class="font-bold text-primary">${isGraded ? (r.score + '%') : '—'}</span></td>
+            <td>
+                <div class="font-medium">${r.exams?.courses?.name || 'N/A'}</div>
+                <div class="text-xs text-muted">${r.exams?.title || 'Final Exam'}</div>
+            </td>
+            <td>${scoreHtml}</td>
             <td><span class="status-badge ${statusClass}">${statusText}</span></td>
             <td class="text-xs text-muted">${new Date(r.submitted_at).toLocaleDateString()}</td>`;
         tbody.appendChild(tr);
     });
-    if (!data?.length) {
-      tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted p-6">No exam results yet</td></tr>';
-    }
 }
 
 async function loadNotifications() {

@@ -29,8 +29,9 @@ export const routing = {
         if (profile.status !== 'approved') {
             if (!window.location.pathname.includes('waiting-approval.html')) {
                 window.location.href = waitingPath;
+                return null; // Stop all downstream execution after redirect
             }
-            return profile;
+            return profile; // Only waiting-approval.html needs the profile object
         }
 
         // 2. Check Role Requirements
