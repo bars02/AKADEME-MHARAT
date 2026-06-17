@@ -571,6 +571,7 @@ body {
     margin-bottom: 1rem;
     background: linear-gradient(to right, #60a5fa, #38bdf8);
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 .auth-visual-content p {
@@ -618,7 +619,13 @@ body {
     .auth-glass-card {
         background: rgba(255, 255, 255, 0.95);
         backdrop-filter: blur(20px);
+        margin-top: 5rem;
     }
+    
+    .auth-glass-card .grid-cols-2 {
+        grid-template-columns: 1fr;
+    }
+    
     [data-theme="dark"] .auth-glass-card {
         background: rgba(15, 23, 42, 0.85);
     }
