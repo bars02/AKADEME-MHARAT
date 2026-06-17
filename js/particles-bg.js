@@ -68,3 +68,13 @@ class ParticleNetwork {
 }
 
 window.ParticleNetwork = ParticleNetwork;
+
+if (document.getElementById('particles-bg')) {
+    new ParticleNetwork('particles-bg');
+} else {
+    document.addEventListener('DOMContentLoaded', () => {
+        if (document.getElementById('particles-bg')) {
+            new ParticleNetwork('particles-bg');
+        }
+    });
+}

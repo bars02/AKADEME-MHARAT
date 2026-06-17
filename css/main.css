@@ -534,25 +534,22 @@ body {
     -webkit-text-fill-color: transparent;
 }
 
-/* Split-Screen Layout for Auth Pages */
+/* Split-Screen Layout for Auth Pages - Centered & Unified */
 .auth-layout {
     display: flex;
     min-height: 100vh;
     width: 100vw;
     overflow: hidden;
+    position: relative;
+    align-items: center;
+    justify-content: center;
 }
 
 .auth-visual {
-    flex: 1.2;
-    position: relative;
+    position: absolute;
+    inset: 0;
     background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    color: white;
-    padding: 3rem;
-    overflow: hidden;
+    z-index: 1;
 }
 .auth-visual canvas {
     position: absolute;
@@ -560,40 +557,24 @@ body {
     z-index: 1;
 }
 .auth-visual-content {
-    position: relative;
-    z-index: 2;
-    text-align: center;
-    max-width: 500px;
-}
-.auth-visual-content h1 {
-    font-size: 3rem;
-    font-weight: 800;
-    margin-bottom: 1rem;
-    background: linear-gradient(to right, #60a5fa, #38bdf8);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
-.auth-visual-content p {
-    font-size: 1.1rem;
-    color: #94a3b8;
-    line-height: 1.6;
+    display: none;
 }
 
 .auth-form-wrapper {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--bg-main);
+    background: transparent;
     padding: 2rem;
     position: relative;
     z-index: 10;
+    width: 100%;
+    display: flex;
+    justify-content: center;
 }
 
 .auth-glass-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
     border-radius: var(--radius-lg);
     padding: 3rem;
     width: 100%;

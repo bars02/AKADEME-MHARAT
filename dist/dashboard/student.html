@@ -2,7 +2,7 @@
 <html lang="en" dir="ltr" translate="no">
 <head>
     <meta charset="UTF-8">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; media-src 'self' blob: https:; frame-src blob: https://www.youtube.com;">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net; media-src 'self' blob: https:; frame-src blob: https://www.youtube.com;">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="google" content="notranslate">
     <title>Student Dashboard - Maharat Academy</title>
@@ -70,15 +70,16 @@
         #focusGuard.active { display: flex; }
         #secureViewer, #coursesSection { user-select: none; -webkit-user-select: none; }
     </style>
-  <script type="module" crossorigin src="/assets/student-DKxZy0wV.js"></script>
-  <link rel="modulepreload" crossorigin href="/assets/i18n-DRKnIWRY.js">
-  <link rel="modulepreload" crossorigin href="/assets/supabase-CizyiV9c.js">
-  <link rel="modulepreload" crossorigin href="/assets/routing-BvDlne0Z.js">
+  <script type="module" crossorigin src="/assets/student-BLE65WU4.js"></script>
+  <link rel="modulepreload" crossorigin href="/assets/i18n-DcMJS5Ua.js">
+  <link rel="modulepreload" crossorigin href="/assets/supabase-DH8aLYxE.js">
+  <link rel="modulepreload" crossorigin href="/assets/routing-Dr8p7FJC.js">
   <link rel="modulepreload" crossorigin href="/assets/ui-B_NTAJb_.js">
-  <link rel="stylesheet" crossorigin href="/assets/i18n-COyG8zfE.css">
+  <link rel="stylesheet" crossorigin href="/assets/i18n-f_z-zrm5.css">
 </head>
 <body class="bg-light">
 <div class="dashboard-layout">
+  <div id="sidebarOverlay" class="sidebar-overlay" onclick="document.getElementById('sidebar').classList.remove('open'); this.classList.remove('open')"></div>
 
   <!-- ======= SIDEBAR ======= -->
   <aside class="sidebar" id="sidebar">

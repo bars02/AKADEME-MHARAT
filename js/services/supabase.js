@@ -6,8 +6,8 @@
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
 // Supabase Project Credentials
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const SUPABASE_URL = (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_SUPABASE_URL) || 'https://qthzqwkoeqyoevmtysts.supabase.co';
+const SUPABASE_KEY = (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_SUPABASE_ANON_KEY) || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF0aHpxd2tvZXF5b2V2bXR5c3RzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0MzMxNjcsImV4cCI6MjA5MjAwOTE2N30.AXBPk5xjqhahRWtryi1vJGwJQvlkH9VJJfK379h5DZw';
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
