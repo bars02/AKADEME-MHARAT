@@ -1,54 +1,92 @@
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
+
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.groq.com; media-src 'self' blob: https:; frame-src blob: https://www.youtube.com;">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title data-i18n="register">Register - Akram Academy</title>
     <link rel="stylesheet" href="css/main.css">
     <link rel="stylesheet" href="css/components.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body class="bg-light flex items-center justify-center min-vh-100">
-    <div class="glass-card" style="width: 100%; max-width: 500px;">
-        <div class="text-center mb-6">
-            <a href="index.html" class="text-primary mb-4 block" style="font-size: 2rem;"><i class="fas fa-graduation-cap"></i></a>
-            <h1 data-i18n="register">Register</h1>
-            <p class="text-muted" data-i18n="registerSub">Join our medical education network</p>
+
+<body class="bg-light">
+    <div class="auth-layout">
+        <!-- Visual Background Side -->
+        <div class="auth-visual">
+            <canvas id="particles-bg"></canvas>
+            <div class="auth-visual-content">
+                <a href="index.html" class="logo-medical mb-6" style="justify-content: center; text-decoration: none;">
+                    <div class="pulse-icon"><i class="fas fa-microscope"></i></div>
+                    <span class="brand-text">Maharat</span>
+                </a>
+                <h1 data-i18n="joinNetwork">Join the Network</h1>
+                <p data-i18n="registerSub">Be part of the next generation of medical professionals. Start your
+                    specialized training today.</p>
+            </div>
         </div>
 
-        <form id="regForm" class="grid gap-4">
-            <div class="form-group">
-                <label data-i18n="fullName">Full Name</label>
-                <input type="text" id="name" class="form-input" required>
-            </div>
-            <div class="grid grid-cols-2 gap-4">
-                <div class="form-group">
-                    <label data-i18n="role">Role</label>
-                    <select id="role" class="form-input" required>
-                        <option value="student" data-i18n="student">Student</option>
-                        <option value="academic" data-i18n="academic">Academic</option>
-                    </select>
+        <!-- Form Side -->
+        <div class="auth-form-wrapper">
+            <div class="auth-glass-card">
+                <div class="text-center mb-8">
+                    <h2 class="text-2xl font-bold mb-2" data-i18n="register">Create Account</h2>
+                    <p class="text-muted text-sm" data-i18n="registerSub">Join our medical education network</p>
                 </div>
-                <div class="form-group">
-                    <label data-i18n="department">Department</label>
-                    <select id="dept" class="form-input" required></select>
-                </div>
+
+                <form id="regForm" class="grid gap-4">
+                    <div class="form-group">
+                        <label data-i18n="fullName">Full Name</label>
+                        <input type="text" id="name" class="form-input" required placeholder="John Doe">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="form-group">
+                            <label data-i18n="role">Role</label>
+                            <select id="role" class="form-input" required>
+                                <option value="student" data-i18n="student">Student</option>
+                                <option value="academic" data-i18n="academic">Academic</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label data-i18n="department">Department</label>
+                            <select id="dept" class="form-input" required></select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label data-i18n="academicEmail">Email</label>
+                        <input type="email" id="email" class="form-input" required placeholder="name@domain.com">
+                    </div>
+                    <div class="form-group">
+                        <label data-i18n="password">Password</label>
+                        <input type="password" id="pass" class="form-input" required minlength="6"
+                            placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢">
+                    </div>
+                    <button type="submit" id="subBtn" class="btn btn-primary w-full py-3 mt-2"
+                        style="font-size: 1rem;"><i class="fas fa-user-plus"></i> <span
+                            data-i18n="register">Register</span></button>
+                </form>
+
+                <p class="text-center mt-6 text-sm text-muted">
+                    <span data-i18n="alreadyHaveAccount">Registered?</span>
+                    <a href="login.html" class="text-primary font-bold hover:underline" data-i18n="login">Login</a>
+                </p>
             </div>
-            <div class="form-group">
-                <label data-i18n="academicEmail">Email</label>
-                <input type="email" id="email" class="form-input" required>
-            </div>
-            <div class="form-group">
-                <label data-i18n="password">Password</label>
-                <input type="password" id="pass" class="form-input" required minlength="6">
-            </div>
-            <button type="submit" id="subBtn" class="btn btn-primary w-full py-3" data-i18n="register">Register</button>
-        </form>
-        <p class="text-center mt-4"><span data-i18n="alreadyHaveAccount">Registered?</span> <a href="login.html" data-i18n="login">Login</a></p>
+        </div>
     </div>
 
     <div id="toastContainer" class="toast-container"></div>
-
+    <script type="module" src="js/particles-bg.js" defer></script>
+    <script defer>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.ParticleNetwork) new window.ParticleNetwork('particles-bg');
+        });
+    </script>
+    <script type="module">
+        import { initAIWidget } from '/js/ai-widget.js';
+        initAIWidget();
+    </script>
     <script type="module">
         import i18n from './js/i18n.js';
         import { supabase } from './js/services/supabase.js';
@@ -60,14 +98,14 @@
                 if (!supabase || supabase.supabaseUrl.includes('YOUR_')) {
                     throw new Error('Supabase not configured. Please update js/services/supabase.js');
                 }
-                
-                select.innerHTML = `<option value="">${i18n.lang === 'ar' ? 'جاري التحميل...' : 'Loading...'}</option>`;
-                
+
+                select.innerHTML = `<option value="">${i18n.lang === 'ar' ? 'Ø¬Ø§Ø±ÙŠ Ø§Ù„ØªØ­Ù…ÙŠÙ„...' : 'Loading...'}</option>`;
+
                 const { data, error } = await supabase.from('departments').select('*');
-                
+
                 if (error) throw error;
 
-                select.innerHTML = `<option value="">${i18n.lang === 'ar' ? 'اختر القسم' : 'Select Department'}</option>`;
+                select.innerHTML = `<option value="">${i18n.lang === 'ar' ? 'Ø§Ø®ØªØ± Ø§Ù„Ù‚Ø³Ù…' : 'Select Department'}</option>`;
                 if (data && data.length > 0) {
                     data.forEach(d => {
                         const o = document.createElement('option');
@@ -80,7 +118,7 @@
                 } else {
                     select.innerHTML = `<option value="">No departments found</option>`;
                 }
-                
+
                 i18n.updateDOM();
             } catch (err) {
                 console.error(err);
@@ -108,11 +146,11 @@
             if (error) {
                 console.error('Sign up error:', error);
                 ui.toast(`Registration failed: ${error.message}`, 'error');
-                
+
                 if (error.message.includes('apiKey')) {
                     ui.toast('Check your Supabase Key in js/services/supabase.js', 'error');
                 }
-                
+
                 ui.setLoading(btn, false);
             } else if (data.user && data.user.identities && data.user.identities.length === 0) {
                 ui.toast('This email is already registered.', 'error');
@@ -126,4 +164,5 @@
         init();
     </script>
 </body>
+
 </html>

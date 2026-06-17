@@ -237,7 +237,7 @@
 import i18n from '../js/i18n.js';
 import { routing } from '../js/services/routing.js';
 import { supabase } from '../js/services/supabase.js';
-import { ui } from '../js/services/ui.js';
+import { ui, esc } from '../js/services/ui.js';
 
 let allUsers = [];
 let allDepts = [];
@@ -304,9 +304,9 @@ function renderPendingTable(users) {
   users.forEach(u => {
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td class="font-medium">${u.name}</td>
-      <td><span class="role-badge ${u.role}">${u.role}</span></td>
-      <td>${u.departments?.name || 'N/A'}</td>
+      <td class="font-medium">${esc(u.name)}</td>
+      <td><span class="role-badge ${esc(u.role)}">${esc(u.role)}</span></td>
+      <td>${esc(u.departments?.name || 'N/A')}</td>
       <td class="flex gap-2">
         <button class="btn btn-primary btn-sm" onclick="quickApprove('${u.id}')">
           <i class="fas fa-check"></i> Approve
@@ -330,10 +330,10 @@ function renderUsers(users) {
     const tr = document.createElement('tr');
     const date = u.created_at ? new Date(u.created_at).toLocaleDateString() : 'N/A';
     tr.innerHTML = `
-      <td class="font-medium">${u.name}</td>
-      <td><span class="role-badge ${u.role}">${u.role}</span></td>
-      <td>${u.departments?.name || 'N/A'}</td>
-      <td><span class="status-badge ${u.status}">${u.status}</span></td>
+      <td class="font-medium">${esc(u.name)}</td>
+      <td><span class="role-badge ${esc(u.role)}">${esc(u.role)}</span></td>
+      <td>${esc(u.departments?.name || 'N/A')}</td>
+      <td><span class="status-badge ${esc(u.status)}">${esc(u.status)}</span></td>
       <td class="text-muted" style="font-size:.85rem">${date}</td>
       <td class="flex gap-2">
         ${u.status === 'pending' ? `<button class="btn btn-primary btn-sm" onclick="quickApprove('${u.id}')"><i class="fas fa-check"></i></button>` : ''}
@@ -375,8 +375,8 @@ function renderDepts(depts) {
           <i class="fas fa-building"></i>
         </div>
         <div>
-          <h4 class="font-bold">${d.name}</h4>
-          <p class="text-xs text-muted">${d.description || 'No description'}</p>
+          <h4 class="font-bold">${esc(d.name)}</h4>
+          <p class="text-xs text-muted">${esc(d.description || 'No description')}</p>
         </div>
       </div>
       <button class="btn btn-outline btn-sm" style="color:var(--danger);margin-top:.5rem"
@@ -390,7 +390,7 @@ function renderDepts(depts) {
 /* ── Results ── */
 async function loadResults() {
   const { data, error } = await supabase.from('results')
-    .select('*, profiles(name), exams(device_id, devices(name))')
+    .select('*, profiles(name), exams(course_id, courses(name))')
     .order('submitted_at', {ascending: false})
     .limit(100);
   if (error) return;
@@ -400,10 +400,10 @@ async function loadResults() {
     const tr = document.createElement('tr');
     const date = r.submitted_at ? new Date(r.submitted_at).toLocaleDateString() : 'N/A';
     tr.innerHTML = `
-      <td class="font-medium">${r.profiles?.name || 'Unknown'}</td>
-      <td>${r.exams?.devices?.name || 'N/A'}</td>
-      <td><span class="font-bold text-primary">${r.score}%</span></td>
-      <td><span class="status-badge ${r.status}">${r.status.replace('_',' ')}</span></td>
+      <td class="font-medium">${esc(r.profiles?.name || 'Unknown')}</td>
+      <td>${esc(r.exams?.courses?.name || 'N/A')}</td>
+      <td><span class="font-bold text-primary">${r.score ?? '?'} / ${r.max_score ?? '?'}</span></td>
+      <td><span class="status-badge ${esc(r.status)}">${esc(r.status.replace('_',' '))}</span></td>
       <td class="text-muted" style="font-size:.85rem">${date}</td>
       <td>
         ${r.status==='pending_review' ? `<button class="btn btn-primary btn-sm" onclick="approveResult('${r.id}')"><i class="fas fa-check"></i> Approve</button>` : '<i class="fas fa-check-double text-success"></i>'}

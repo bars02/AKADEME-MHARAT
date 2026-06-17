@@ -2,6 +2,7 @@
 <html lang="en" dir="ltr" translate="no">
 <head>
     <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.groq.com; media-src 'self' blob: https:; frame-src blob: https://www.youtube.com;">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="google" content="notranslate">
     <title>Student Dashboard - Maharat Academy</title>
@@ -74,6 +75,7 @@
 </head>
 <body class="bg-light">
 <div class="dashboard-layout">
+  <div id="sidebarOverlay" class="sidebar-overlay" onclick="document.getElementById('sidebar').classList.remove('open'); this.classList.remove('open')"></div>
 
   <!-- ======= SIDEBAR ======= -->
   <aside class="sidebar" id="sidebar">
@@ -138,7 +140,7 @@
         </div>
       </div>
       <div class="flex gap-4 items-center">
-        <button id="langToggle" class="btn btn-outline btn-sm" data-i18n="switchLang">العربية</button>
+        <button id="langToggle" class="btn btn-outline btn-sm" data-i18n="switchLang">Ø§Ù„Ø¹Ø±Ø¨ÙŠØ©</button>
       </div>
     </header>
 
@@ -156,7 +158,7 @@
         </div>
         <div class="stat-card">
           <div class="stat-icon" style="background:rgba(245,158,11,.1);color:var(--warning);"><i class="fas fa-star"></i></div>
-          <div><div class="text-2xl font-bold" id="statAvgScore">—</div><div class="text-sm text-muted">Average Score</div></div>
+          <div><div class="text-2xl font-bold" id="statAvgScore">â€”</div><div class="text-sm text-muted">Average Score</div></div>
         </div>
       </div>
 
@@ -174,10 +176,10 @@
           <div id="linksList" class="flex flex-wrap gap-4"></div>
       </div>
 
-      <!-- Active Courses -->
+      <!-- Programs -->
       <div>
-          <h3 class="text-sm font-bold text-muted uppercase mb-4 tracking-widest">Active Courses</h3>
-          <div id="courseGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
+          <h3 class="text-sm font-bold text-muted uppercase mb-4 tracking-widest">Department Programs</h3>
+          <div id="programGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
       </div>
     </section>
 
@@ -191,7 +193,7 @@
               </div>
               <div>
                   <h3 class="text-2xl font-bold" id="profileName">Student Name</h3>
-                  <p class="text-muted" id="profileArName">الاسم بالعربي</p>
+                  <p class="text-muted" id="profileArName">Ø§Ù„Ø§Ø³Ù… Ø¨Ø§Ù„Ø¹Ø±Ø¨ÙŠ</p>
                   <p class="text-sm text-muted mt-2">ID: <span id="profileId" class="font-mono bg-slate-100 px-2 py-1 rounded">...</span></p>
               </div>
           </div>
@@ -199,14 +201,30 @@
     </section>
 
     <!-- COURSES & MATERIALS -->
-    <!-- COURSES & MATERIALS -->
+    <!-- PROGRAM COURSES & MATERIALS -->
     <section id="coursesSection" class="view-section">
-      <div class="flex justify-between items-center mb-6">
-        <h2 class="text-xl font-bold" data-i18n="coursesMaterials">My Courses & Materials</h2>
-        <select id="matCourseSelect" class="form-input w-48" onchange="loadMaterialsForCourse(this.value)"></select>
+      <div class="flex items-center gap-4 mb-6">
+        <button class="btn btn-outline btn-sm" onclick="document.querySelector('.nav-link[data-view=overview]').click()">
+          <i class="fas fa-arrow-left mr-2"></i>Programs
+        </button>
+        <div>
+          <h2 class="text-xl font-bold" id="programCoursesTitle" data-i18n="coursesMaterials">Program Courses</h2>
+          <p class="text-xs text-muted">Courses within this program</p>
+        </div>
       </div>
-      <div id="materialsList" class="flex flex-col gap-4">
-        <!-- Materials will be loaded here -->
+      
+      <!-- Courses Grid for the selected program -->
+      <div id="programCourseGrid" class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8"></div>
+
+      <!-- Materials List for the selected course -->
+      <div id="materialsContainer" style="display:none;" class="glass-card">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-lg font-bold" id="selectedCourseTitle">Course Materials</h3>
+          <button class="btn btn-outline btn-sm" onclick="document.getElementById('materialsContainer').style.display='none'"><i class="fas fa-times"></i></button>
+        </div>
+        <div id="materialsList" class="flex flex-col gap-4">
+          <!-- Materials will be loaded here -->
+        </div>
       </div>
     </section>
 
@@ -330,7 +348,7 @@
         <i class="fas fa-shield-alt" style="color:#3b82f6;"></i>
         <span id="svTitle">Protected Content</span>
         <span style="background:#1e293b;color:#64748b;font-size:.7rem;padding:3px 10px;border-radius:20px;margin-left:auto;margin-right:12px;">
-            <i class="fas fa-lock mr-1"></i>Maharat Academy — Protected
+            <i class="fas fa-lock mr-1"></i>Maharat Academy â€” Protected
         </span>
         <button id="svClose" onclick="closeSecureViewer()"><i class="fas fa-times"></i></button>
     </div>
@@ -355,7 +373,7 @@
 import i18n from '../js/i18n.js';
 import { routing } from '../js/services/routing.js';
 import { supabase } from '../js/services/supabase.js';
-import { ui } from '../js/services/ui.js';
+import { ui, esc } from '../js/services/ui.js';
 
 let profile = null;
 
@@ -365,7 +383,7 @@ async function init() {
   const pName = document.getElementById('profileName');
   if(pName) pName.textContent = profile.name || 'Student';
   const pArName = document.getElementById('profileArName');
-  if(pArName) pArName.textContent = profile.arabic_name || 'طالب';
+  if(pArName) pArName.textContent = profile.arabic_name || 'Ø·Ø§Ù„Ø¨';
   const pId = document.getElementById('profileId');
   if(pId) pId.textContent = profile.id.substring(0,8);
 
@@ -390,54 +408,59 @@ function renderLinks(links) {
     list.innerHTML = links.map(l => `
         <a href="${l.url}" target="_blank" class="link-pill">
             <i class="fas fa-external-link-alt"></i>
-            ${l.name}
+            ${esc(l.name)}
         </a>
     `).join('');
 }
 
+let myProgramsList = [];
 let myCoursesList = [];
 const materialsMap = new Map();
 let currentExamData = null;
 let currentAiCourseName = "";
 
 async function loadCourses() {
-    const { data: courses } = await supabase.from('courses').select('*').eq('department_id', profile.department_id).eq('status','published');
-    
-    myCoursesList = courses || [];
-    document.getElementById('statCourses').textContent = courses?.length || 0;
+    const { data: programs } = await supabase.from('programs').select('*').eq('department_id', profile.department_id).order('name');
+    myProgramsList = programs || [];
 
-    const gridEl = document.getElementById('courseGrid');
+    const { data: courses } = await supabase.from('courses').select('*, programs!inner(department_id)').eq('programs.department_id', profile.department_id).eq('status','published');
+    myCoursesList = courses || [];
+    
+    document.getElementById('statCourses').textContent = myCoursesList.length || 0;
+
+    const gridEl = document.getElementById('programGrid');
     if (gridEl) {
         gridEl.innerHTML = '';
-        if (!courses?.length) {
-            gridEl.innerHTML = '<p class="text-muted">No courses available yet.</p>';
+        if (!myProgramsList?.length) {
+            gridEl.innerHTML = '<p class="text-muted">No programs available yet.</p>';
         } else {
-            courses.forEach(c => {
+            myProgramsList.forEach(p => {
                 const card = document.createElement('div');
-                card.className = 'course-card';
+                card.className = 'course-card cursor-pointer';
+                card.onclick = () => openProgram(p.id, p.name);
                 card.innerHTML = `
                     <div class="course-image">
-                        ${c.image_url ? `<img src="${c.image_url}" alt="${c.name}">` : `<div class="placeholder"><i class="fas fa-book fa-3x"></i></div>`}
+                        ${p.image_url ? `<img src="${esc(p.image_url)}" alt="${esc(p.name)}">` : `<div class="placeholder"><i class="fas fa-project-diagram fa-3x"></i></div>`}
                     </div>
                     <div class="p-6">
-                        <h3 class="mb-2 text-lg">${c.name}</h3>
-                        <p class="text-sm text-muted mb-6 h-10 overflow-hidden">${c.description || 'Professional course'}</p>
-                        <a href="../pages/course-details.html?id=${c.id}" class="btn btn-primary w-full">
-                            <i class="fas fa-book"></i> Enter Full Course
-                        </a>
+                        <h3 class="mb-2 text-lg">${esc(p.name)}</h3>
+                        <p class="text-sm text-muted mb-6 h-10 overflow-hidden">${esc(p.description || 'Department program')}</p>
+                        <button class="btn btn-primary w-full">
+                            <i class="fas fa-book"></i> Enter Program
+                        </button>
                     </div>`;
                 gridEl.appendChild(card);
             });
         }
     }
 
-    const dropdowns = ['matCourseSelect', 'aiCourseSelect', 'simCourseSelect', 'examCourseSelect'];
+    const dropdowns = ['aiCourseSelect', 'simCourseSelect', 'examCourseSelect'];
     dropdowns.forEach(id => {
         const select = document.getElementById(id);
         if (!select) return;
         select.innerHTML = '';
-        if (courses?.length) {
-            courses.forEach(c => {
+        if (myCoursesList?.length) {
+            myCoursesList.forEach(c => {
                 const opt = document.createElement('option');
                 opt.value = c.id;
                 opt.textContent = c.name;
@@ -451,19 +474,53 @@ async function loadCourses() {
         }
     });
 
-    if (courses?.length) {
-        const firstId = courses[0].id;
-        window.loadMaterialsForCourse(firstId);
+    if (myCoursesList?.length) {
+        const firstId = myCoursesList[0].id;
         window.initAiChat(firstId);
         window.resetExamUI();
     }
 }
 
+window.openProgram = (programId, programName) => {
+    document.getElementById('programCoursesTitle').textContent = programName;
+    document.querySelector('.nav-link[data-view="courses"]').click();
+    
+    const pGrid = document.getElementById('programCourseGrid');
+    pGrid.innerHTML = '';
+    document.getElementById('materialsContainer').style.display = 'none';
+    
+    const pCourses = myCoursesList.filter(c => c.program_id === programId);
+    if (!pCourses.length) {
+        pGrid.innerHTML = '<div class="col-span-3 text-center text-muted p-8">No courses available in this program.</div>';
+        return;
+    }
+    
+    pCourses.forEach(c => {
+        const card = document.createElement('div');
+        card.className = 'glass-card overflow-hidden p-0 cursor-pointer transition-all hover:-translate-y-1 hover:shadow-lg';
+        card.onclick = () => loadMaterialsForCourse(c.id, c.name);
+        card.innerHTML = `
+            <div class="course-image" style="height:120px;">
+                ${c.image_url ? `<img src="${esc(c.image_url)}">` : `<div class="placeholder"><i class="fas fa-book fa-3x"></i></div>`}
+            </div>
+            <div class="p-4">
+                <h4 class="font-bold mb-1">${esc(c.name)}</h4>
+                <p class="text-xs text-muted mb-4 line-clamp-2">${esc(c.description || '')}</p>
+                <div class="text-primary text-sm font-bold"><i class="fas fa-folder-open mr-1"></i>View Materials</div>
+            </div>`;
+        pGrid.appendChild(card);
+    });
+};
+
 const typeIconMap = { pdf: 'fa-file-pdf', video: 'fa-play-circle', image: 'fa-image', ppt: 'fa-file-powerpoint', word: 'fa-file-word', file: 'fa-file-alt' };
 const typeLabelMap = { pdf: 'PDF Document', video: 'Video Lecture', image: 'Image / Diagram', ppt: 'PowerPoint Presentation', word: 'Word Document', file: 'Resource File' };
 
-window.loadMaterialsForCourse = async (courseId) => {
+window.loadMaterialsForCourse = async (courseId, courseName) => {
     if (!courseId) return;
+    
+    document.getElementById('materialsContainer').style.display = 'block';
+    if(courseName) document.getElementById('selectedCourseTitle').textContent = courseName + ' Materials';
+    
     const { data: mats } = await supabase.from('materials').select('*').eq('course_id', courseId).eq('status','published').order('created_at');
     const list = document.getElementById('materialsList');
     list.innerHTML = '';
@@ -481,7 +538,7 @@ window.loadMaterialsForCourse = async (courseId) => {
             <div class="mat-card-header">
                 <div class="mat-type-icon ${m.type || 'file'}"><i class="fas ${typeIconMap[m.type] || 'fa-file-alt'}"></i></div>
                 <div>
-                    <div class="font-bold text-slate-800">${m.title}</div>
+                    <div class="font-bold text-slate-800">${esc(m.title)}</div>
                     <div class="text-xs text-muted mt-0.5">${typeLabelMap[m.type] || 'Material'}</div>
                 </div>
                 <button class="mat-open-btn" onclick="openSecureViewer('${m.id}')"><i class="fas fa-play"></i> Open</button>
@@ -539,7 +596,7 @@ window.initAiChat = (courseId) => {
     const course = myCoursesList.find(c => c.id === courseId);
     currentAiCourseName = course ? course.name : "General";
     const container = document.getElementById('chatMessages');
-    container.innerHTML = `<div class="msg ai">Hello! I am your Maharat Academy Assistant for <b>${currentAiCourseName}</b>. How can I help you today?</div>`;
+    container.innerHTML = `<div class="msg ai">Hello! I am your Maharat Academy Assistant for <b>${esc(currentAiCourseName)}</b>. How can I help you today?</div>`;
 };
 
 window.sendMessage = async () => {
@@ -555,35 +612,44 @@ window.sendMessage = async () => {
     input.value = '';
     container.scrollTop = container.scrollHeight;
 
-    const typing = document.createElement('div');
-    typing.className = 'msg ai italic opacity-50';
-    typing.textContent = i18n.lang === 'ar' ? 'المساعد يكتب...' : 'Assistant is thinking...';
-    container.appendChild(typing);
+    const typingId = 'typing-' + Date.now();
+    container.insertAdjacentHTML('beforeend', `
+        <div id="${typingId}" class="msg ai italic opacity-50" style="display:flex;gap:4px;padding:12px;">
+            <div style="width:6px;height:6px;background:var(--text-muted);border-radius:50%;animation:typingBounce 1.4s infinite ease-in-out both;animation-delay:-0.32s"></div>
+            <div style="width:6px;height:6px;background:var(--text-muted);border-radius:50%;animation:typingBounce 1.4s infinite ease-in-out both;animation-delay:-0.16s"></div>
+            <div style="width:6px;height:6px;background:var(--text-muted);border-radius:50%;animation:typingBounce 1.4s infinite ease-in-out both;"></div>
+        </div>
+    `);
     container.scrollTop = container.scrollHeight;
 
     try {
-        const { data: { session } } = await supabase.auth.getSession();
-        const response = await fetch(`${supabase.supabaseUrl}/functions/v1/ai-chat`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${session?.access_token}`,
-                'apikey': supabase.supabaseKey
-            },
-            body: JSON.stringify({ message: text, course: currentAiCourseName })
-        });
+        const { aiService } = await import('../js/services/ai.js');
+        
+        // Determine agent type based on user's department
+        // profile.department_id determines the domain
+        let agentType = 'main';
+        if (profile.department_id) {
+            // Check if department name contains medical or pathology
+            const { data: dept } = await supabase.from('departments').select('name').eq('id', profile.department_id).single();
+            if (dept && dept.name.toLowerCase().includes('medical')) agentType = 'medical';
+            else if (dept && dept.name.toLowerCase().includes('patholog')) agentType = 'pathology';
+            else agentType = 'medical'; // default fallback for simulators
+        }
 
-        const data = await response.json();
-        if (container.contains(typing)) container.removeChild(typing);
+        const promptContext = `[Context: The user is in the ${currentAiCourseName} simulator]. User says: ${text}`;
+        const responseText = await aiService.ask(promptContext, agentType);
+
+        const typingEl = document.getElementById(typingId);
+        if (typingEl) typingEl.remove();
         
         const aiDiv = document.createElement('div');
         aiDiv.className = 'msg ai';
-        aiDiv.textContent = data.error ? `Error: ${data.error}` : (data.reply || "Sorry, connection error.");
-        if (data.error) aiDiv.style.color = '#ef4444';
+        aiDiv.textContent = responseText;
         container.appendChild(aiDiv);
         container.scrollTop = container.scrollHeight;
     } catch (error) {
-        if (container.contains(typing)) container.removeChild(typing);
+        const typingEl = document.getElementById(typingId);
+        if (typingEl) typingEl.remove();
         ui.toast('AI connection failed', 'error');
     }
 };
@@ -602,6 +668,10 @@ window.simAction = (action) => {
 };
 
 let examTimerInterval = null;
+
+window.addEventListener('beforeunload', () => {
+    if (examTimerInterval) clearInterval(examTimerInterval);
+});
 
 window.resetExamUI = () => {
     document.getElementById('examIntro').style.display = 'block';
@@ -669,11 +739,11 @@ window.startExam = async () => {
         const ptsHtml = `<span class="badge float-right text-xs" style="background:#f1f5f9;color:#64748b;padding:4px 8px;border-radius:12px;">${qPoints} Pts</span>`;
 
         if ((q.type || 'mcq') === 'mcq') {
-            card.innerHTML = `<p class="font-bold text-lg mb-6">${i+1}. ${q.question} ${ptsHtml}</p>`;
+            card.innerHTML = `<p class="font-bold text-lg mb-6">${i+1}. ${esc(q.question)} ${ptsHtml}</p>`;
             Object.keys(q.options || {}).forEach(key => {
                 const b = document.createElement('button');
                 b.className = 'opt-btn';
-                b.innerHTML = `<span class="w-8 h-8 rounded-full border flex items-center justify-center font-bold text-xs uppercase">${key}</span><span>${q.options[key]}</span>`;
+                b.innerHTML = `<span class="w-8 h-8 rounded-full border flex items-center justify-center font-bold text-xs uppercase">${key}</span><span>${esc(q.options[key])}</span>`;
                 b.onclick = () => {
                     card.querySelectorAll('.opt-btn').forEach(btn => btn.classList.remove('selected'));
                     b.classList.add('selected');
@@ -682,7 +752,7 @@ window.startExam = async () => {
                 card.appendChild(b);
             });
         } else if (q.type === 'boolean') {
-            card.innerHTML = `<p class="font-bold text-lg mb-6">${i+1}. ${q.question} ${ptsHtml}</p>`;
+            card.innerHTML = `<p class="font-bold text-lg mb-6">${i+1}. ${esc(q.question)} ${ptsHtml}</p>`;
             ['True', 'False'].forEach(val => {
                 const b = document.createElement('button');
                 b.className = 'opt-btn';
@@ -695,7 +765,7 @@ window.startExam = async () => {
                 card.appendChild(b);
             });
         } else if (q.type === 'essay' || q.type === 'short_answer') {
-            card.innerHTML = `<p class="font-bold text-lg mb-4">${i+1}. ${q.question} ${ptsHtml}</p>
+            card.innerHTML = `<p class="font-bold text-lg mb-4">${i+1}. ${esc(q.question)} ${ptsHtml}</p>
                 <textarea class="form-input w-full" rows="3" placeholder="Type your answer here..." onchange="this.parentElement.dataset.choice = this.value"></textarea>`;
         }
         container.appendChild(card);
@@ -715,7 +785,7 @@ window.submitExam = async (isAuto = false) => {
     btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Submitting...';
 
     try {
-        // Use the auto-grading RPC — MCQ graded instantly, essays sent to academic
+        // Use the auto-grading RPC â€” MCQ graded instantly, essays sent to academic
         const { data: result, error } = await supabase.rpc('submit_exam', {
             p_exam_id: currentExamData.id,
             p_answers: answers
@@ -739,21 +809,21 @@ window.submitExam = async (isAuto = false) => {
         const msgEl     = document.getElementById('examResultMsg');
 
         if (hasEssay) {
-            iconEl.textContent  = '📋';
-            scoreEl.textContent = result.total > 0 ? `${score} / ${maxScore}` : '—';
+            iconEl.textContent  = 'ðŸ“‹';
+            scoreEl.textContent = result.total > 0 ? `${score} / ${maxScore}` : 'â€”';
             scoreEl.style.color = 'var(--warning)';
             titleEl.textContent = 'Submitted for Review';
             msgEl.textContent   = result.total > 0
                 ? `Auto-graded MCQ score: ${score} points. Your essay answers are pending review by your Academic.`
                 : 'Your answers have been submitted. Your Academic will review and grade your exam.';
         } else if (passed) {
-            iconEl.textContent  = '🎉';
+            iconEl.textContent  = 'ðŸŽ‰';
             scoreEl.textContent = `${score} / ${maxScore}`;
             scoreEl.style.color = 'var(--success)';
             titleEl.textContent = 'Congratulations! You Passed!';
             msgEl.textContent   = `Excellent work! You answered correctly and earned ${score} points.`;
         } else {
-            iconEl.textContent  = '📖';
+            iconEl.textContent  = 'ðŸ“–';
             scoreEl.textContent = `${score} / ${maxScore}`;
             scoreEl.style.color = 'var(--danger)';
             titleEl.textContent = 'Keep Studying!';
@@ -780,8 +850,8 @@ async function loadAnnouncements() {
         const list = document.getElementById('fullAnnList');
         list.innerHTML = data.map(a => `
             <div class="glass-card">
-                <h4 class="font-bold mb-2">${a.title}</h4>
-                <p class="text-sm text-muted">${a.body}</p>
+                <h4 class="font-bold mb-2">${esc(a.title)}</h4>
+                <p class="text-sm text-muted">${esc(a.body)}</p>
                 <div class="text-[10px] text-muted mt-4">${new Date(a.created_at).toLocaleString()}</div>
             </div>
         `).join('');
@@ -805,7 +875,7 @@ async function loadResults() {
         const avg = (totalPct / graded.length) * 100;
         document.getElementById('statAvgScore').textContent = Math.round(avg) + '%';
     } else {
-        document.getElementById('statAvgScore').textContent = '—';
+        document.getElementById('statAvgScore').textContent = 'â€”';
     }
 
     if (!data?.length) {
@@ -820,7 +890,7 @@ async function loadResults() {
         const pct       = maxScore > 0 && score !== null ? (score / maxScore) * 100 : 0;
         const passed    = score !== null && pct >= 60;
         
-        const statusText  = !isGraded ? 'Pending Review' : (passed ? 'Passed ✓' : 'Failed');
+        const statusText  = !isGraded ? 'Pending Review' : (passed ? 'Passed âœ“' : 'Failed');
         const statusClass = !isGraded ? 'pending'        : (passed ? 'approved' : 'rejected');
         const scoreHtml   = isGraded && score !== null
             ? `<span class="font-bold text-xl" style="color:${passed ? 'var(--success)' : 'var(--danger)'}">${score} <span class="text-xs text-muted">/ ${maxScore}</span></span>`
@@ -860,8 +930,8 @@ async function loadNotifications() {
             <i class="fas fa-bell"></i>
           </div>
           <div class="flex-1">
-            <h4 class="font-bold mb-1">${n.title}</h4>
-            <p class="text-sm text-muted">${n.message}</p>
+            <h4 class="font-bold mb-1">${esc(n.title)}</h4>
+            <p class="text-sm text-muted">${esc(n.message)}</p>
             <div class="text-[10px] text-muted mt-3">${new Date(n.created_at).toLocaleString()}</div>
           </div>
         </div>`;
@@ -882,14 +952,24 @@ function setupNav() {
             document.getElementById(link.dataset.view + 'Section').classList.add('active');
             document.getElementById('viewTitle').textContent = link.querySelector('span').textContent;
             const sidebar = document.getElementById('sidebar');
-            if(sidebar.classList.contains('open')) sidebar.classList.remove('open');
+            const overlay = document.getElementById('sidebarOverlay');
+            if(sidebar.classList.contains('open')) {
+                sidebar.classList.remove('open');
+                if(overlay) overlay.classList.remove('open');
+            }
         };
     });
 }
 function setupMobileMenu() {
     const btn = document.getElementById('mobileMenuBtn');
     const sidebar = document.getElementById('sidebar');
-    if(btn && sidebar) btn.onclick = () => sidebar.classList.toggle('open');
+    const overlay = document.getElementById('sidebarOverlay');
+    if(btn && sidebar) {
+        btn.onclick = () => {
+            sidebar.classList.toggle('open');
+            if(overlay) overlay.classList.toggle('open');
+        };
+    }
 }
 
 document.getElementById('logoutBtn').onclick = () => routing.logout();
@@ -924,3 +1004,4 @@ init();
 </script>
 </body>
 </html>
+

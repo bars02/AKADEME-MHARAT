@@ -5,6 +5,14 @@
   - Modal utilities
 */
 
+// HTML sanitization helper — escapes user data before injecting via innerHTML (XSS protection).
+// Quotes are also encoded so esc() is safe inside HTML attribute values.
+export function esc(str) {
+    const d = document.createElement('div');
+    d.textContent = String(str ?? '');
+    return d.innerHTML.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
 export const ui = {
     toast(message, type = 'success') {
         let container = document.getElementById('toastContainer');
@@ -28,7 +36,7 @@ export const ui = {
         
         el.innerHTML = `
             <i class="fas ${icons[type] || icons.info}"></i>
-            <div class="toast-content">${message}</div>
+            <div class="toast-content">${esc(message)}</div>
         `;
         
         container.appendChild(el);

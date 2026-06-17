@@ -35,9 +35,15 @@ export const routing = {
         }
 
         // 2. Check Role Requirements
-        if (requiredRoles.length > 0 && !requiredRoles.includes(profile.role)) {
-            // Role fallback: if student tries to access admin, redirect to their own dashboard
-            window.location.href = `${pathPrefix}dashboard/${profile.role}.html`;
+        // super_admin has access to everything
+        const effectiveRoles = requiredRoles.includes('admin')
+            ? [...requiredRoles, 'super_admin']
+            : requiredRoles;
+
+        if (effectiveRoles.length > 0 && !effectiveRoles.includes(profile.role)) {
+            // Role fallback: redirect to their own dashboard
+            const dashRole = profile.role === 'super_admin' ? 'admin' : profile.role;
+            window.location.href = `${pathPrefix}dashboard/${dashRole}.html`;
             return profile;
         }
 

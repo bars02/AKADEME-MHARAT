@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" translate="no">
+<head>
+    <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; media-src 'self' blob: https:; frame-src blob: https://www.youtube.com;">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="google" content="notranslate">
+    <title>Academic Dashboard - Maharat Academy</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .view-section { display: none; }
+        .view-section.active { display: block; animation: fadeIn 0.35s ease-out; }
+        @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+        
+        .modal-bg { display: none; position: fixed; inset: 0; background: rgba(15,23,42,0.55); backdrop-filter: blur(4px); align-items: center; justify-content: center; z-index: 2000; }
+        .modal-bg.open { display: flex; }
+        
+        .status-badge { padding: 3px 10px; border-radius: 20px; font-size: .72rem; font-weight: 700; text-transform: uppercase; }
+        .status-badge.pending_review { background:#fef9c3; color:#854d0e; }
+        .status-badge.published { background:#dcfce7; color:#166534; }
+        .status-badge.rejected { background:#fee2e2; color:#991b1b; }
+        .status-badge.pending { background:#fef9c3; color:#854d0e; }
+        .status-badge.approved { background:#dcfce7; color:#166534; }
+        
+        /* Dept drill-down course cards */
+        .course-img-wrap { width: 100%; height: 140px; overflow: hidden; background: #f1f5f9; display: flex; align-items: center; justify-content: center; }
+        .course-img-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    </style>
+  <script type="module" crossorigin src="/assets/academic-CxV9NHvx.js"></script>
+  <link rel="modulepreload" crossorigin href="/assets/i18n-DRKnIWRY.js">
+  <link rel="modulepreload" crossorigin href="/assets/supabase-CizyiV9c.js">
+  <link rel="modulepreload" crossorigin href="/assets/routing-BvDlne0Z.js">
+  <link rel="modulepreload" crossorigin href="/assets/ui-B_NTAJb_.js">
+  <link rel="stylesheet" crossorigin href="/assets/i18n-COyG8zfE.css">
+</head>
+<body class="bg-light">
+<div class="dashboard-layout">
+
+  <!-- ======= SIDEBAR ======= -->
+  <aside class="sidebar" id="sidebar">
+    <div class="logo mb-10 flex justify-between items-center w-full pr-4">
+      <div>
+        <i class="fas fa-chalkboard-teacher"></i>
+        <span data-i18n="appName">Maharat Academy</span>
+      </div>
+      <button class="mobile-only" style="background:none;border:none;color:var(--text);font-size:1.2rem;cursor:pointer;" onclick="document.getElementById('sidebar').classList.remove('open')">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <nav>
+      <a href="#" class="nav-link active" data-view="overview">
+        <i class="fas fa-chart-line"></i><span data-i18n="overview">Overview</span>
+      </a>
+      <a href="#" class="nav-link" data-view="students">
+        <i class="fas fa-user-graduate"></i><span data-i18n="studentManagement">My Students</span>
+      </a>
+      <a href="#" class="nav-link" data-view="courses">
+        <i class="fas fa-book"></i><span data-i18n="courses">Courses</span>
+      </a>
+      <a href="#" class="nav-link" data-view="materials">
+        <i class="fas fa-file-alt"></i><span data-i18n="materials">Materials</span>
+      </a>
+      <a href="#" class="nav-link" data-view="exams">
+        <i class="fas fa-file-signature"></i><span data-i18n="exams">Exams</span>
+      </a>
+      <a href="#" class="nav-link" data-view="grading">
+        <i class="fas fa-tasks"></i><span data-i18n="grading">Grading</span>
+      </a>
+      <a href="#" class="nav-link" data-view="notifications">
+        <i class="fas fa-bell"></i><span data-i18n="notifications">Notifications</span>
+      </a>
+      <a href="#" class="nav-link" data-view="announcements">
+        <i class="fas fa-bullhorn"></i><span data-i18n="announcements">Announcements</span>
+      </a>
+      <a href="#" class="nav-link" data-view="settings">
+        <i class="fas fa-cog"></i><span data-i18n="settings">Dept Settings</span>
+      </a>
+      <div style="margin-top:auto;border-top:1px solid var(--border);padding-top:1rem;">
+        <button id="logoutBtn" class="nav-link w-full" style="background:none;border:none;cursor:pointer;color:var(--danger);">
+          <i class="fas fa-sign-out-alt"></i><span data-i18n="logout">Sign Out</span>
+        </button>
+      </div>
+    </nav>
+  </aside>
+
+  <!-- ======= MAIN ======= -->
+  <main class="main-content">
+    <header class="top-header">
+      <div class="flex items-center gap-4">
+        <button id="mobileMenuBtn" class="btn btn-outline btn-sm mobile-only">
+          <i class="fas fa-bars"></i>
+        </button>
+        <div>
+          <h1 id="viewTitle" class="text-2xl font-bold">Academic Dashboard</h1>
+          <p class="text-sm text-muted" id="deptInfo">Loading Department...</p>
+        </div>
+      </div>
+      <div class="flex gap-4 items-center">
+        <button id="langToggle" class="btn btn-outline btn-sm" data-i18n="switchLang">Ø§Ù„Ø¹Ø±Ø¨ÙŠØ©</button>
+        <div class="flex items-center gap-3">
+          <div>
+            <div id="academicName" class="font-bold">Academic Name</div>
+            <div class="text-xs text-muted" id="academicRole">Department Manager</div>
+          </div>
+          <div class="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold"
+               style="background:var(--primary);">
+            <i class="fas fa-user-tie"></i>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- OVERVIEW -->
+    <section id="overviewSection" class="view-section active">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:rgba(37,99,235,.1);color:var(--primary);"><i class="fas fa-book"></i></div>
+          <div><div class="text-2xl font-bold" id="statCourses">0</div><div class="text-sm text-muted">Courses</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:rgba(16,185,129,.1);color:var(--success);"><i class="fas fa-user-graduate"></i></div>
+          <div><div class="text-2xl font-bold" id="statStudents">0</div><div class="text-sm text-muted">Students</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:rgba(245,158,11,.1);color:var(--warning);"><i class="fas fa-clock"></i></div>
+          <div><div class="text-2xl font-bold" id="statPendingStudents">0</div><div class="text-sm text-muted">Pending Students</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:rgba(139,92,246,.1);color:#8b5cf6;"><i class="fas fa-file-alt"></i></div>
+          <div><div class="text-2xl font-bold" id="statMaterials">0</div><div class="text-sm text-muted">Total Materials</div></div>
+        </div>
+      </div>
+      <h3 class="font-bold mb-4">Department Programs</h3>
+      <div id="programList" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
+    </section>
+
+    <!-- COURSES (View Only â€” Admin creates courses) -->
+    <section id="coursesSection" class="view-section">
+      <div class="flex justify-between items-center mb-2">
+        <h2 class="text-xl font-bold">Department Programs & Courses</h2>
+        <span class="text-xs text-muted bg-slate-100 px-3 py-1 rounded-full"><i class="fas fa-info-circle mr-1"></i>Programs & Courses are created by Admin</span>
+      </div>
+      <p class="text-sm text-muted mb-6">Select a program to view its courses, upload materials and create exams.</p>
+      
+      <!-- PROGRAMS LIST -->
+      <div id="manageProgramList" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
+      
+      <!-- COURSES LIST (Drill-down) -->
+      <div id="manageCourseListContainer" style="display:none;">
+        <div class="flex items-center gap-4 mb-6">
+          <button class="btn btn-outline btn-sm" onclick="backToPrograms()">
+            <i class="fas fa-arrow-left mr-2"></i>Programs
+          </button>
+          <div>
+            <h3 class="text-lg font-bold" id="manageCourseListTitle">Program Courses</h3>
+            <p class="text-xs text-muted">Courses within this program</p>
+          </div>
+        </div>
+        <div id="manageCourseList" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
+      </div>
+    </section>
+
+    <!-- STUDENTS -->
+    <section id="studentsSection" class="view-section">
+      <h2 class="text-xl font-bold mb-6">Department Students</h2>
+      <div class="glass-card p-0 overflow-hidden">
+        <table class="data-table"><thead><tr>
+          <th>Name</th><th>Email</th><th>Status</th><th>Joined</th><th>Actions</th>
+        </tr></thead><tbody id="studentTable"></tbody></table>
+      </div>
+    </section>
+
+    <!-- MATERIALS -->
+    <section id="materialsSection" class="view-section">
+      <div class="glass-card p-6">
+        <div class="flex justify-between items-center mb-6">
+          <h3 class="text-xl font-bold">My Materials</h3>
+          <span class="text-xs text-muted"><i class="fas fa-info-circle mr-1"></i>Go to "Courses" to upload new materials.</span>
+        </div>
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Type</th>
+                <th>Course</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="myMaterialsTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- EXAMS -->
+    <section id="examsSection" class="view-section">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="md:col-span-1 glass-card" id="examCourseList">
+                <h3 class="mb-4">Select Course</h3>
+            </div>
+            <div class="md:col-span-2 glass-card" id="examEditor" style="display:none;">
+                <div class="flex flex-col gap-6">
+                    <div class="flex justify-between items-center">
+                        <h3 id="examEditorTitle" class="font-bold text-xl text-primary">Exam Editor</h3>
+                        <div class="flex gap-2">
+                            <button id="publishExamBtn" class="btn btn-success btn-sm" onclick="publishExam()">
+                                <i class="fas fa-paper-plane mr-1"></i> Send Exam to Students
+                            </button>
+                            <button class="btn btn-primary btn-sm" onclick="openAddQuestion()">
+                                <i class="fas fa-plus mr-1"></i> Add Question
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Exam Settings -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-slate-50 rounded-xl border border-slate-100">
+                        <div class="form-group mb-0">
+                            <label class="text-xs font-bold text-muted uppercase">Duration (Minutes)</label>
+                            <input type="number" id="examDuration" class="form-input" value="30" min="1" onchange="updateExamSettings()">
+                        </div>
+                        <div class="form-group mb-0">
+                            <label class="text-xs font-bold text-muted uppercase">Schedule Release (Optional)</label>
+                            <input type="datetime-local" id="examSchedule" class="form-input" onchange="updateExamSettings()">
+                        </div>
+                    </div>
+
+                    <div id="questionsList" class="flex flex-col gap-4"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ANNOUNCEMENTS -->
+    <section id="announcementsSection" class="view-section">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="md:col-span-1 glass-card">
+                <h3 class="mb-6">New Announcement</h3>
+                <div class="form-group mb-4">
+                    <label>Title</label>
+                    <input type="text" id="annTitle" class="form-input">
+                </div>
+                <div class="form-group mb-6">
+                    <label>Message</label>
+                    <textarea id="annBody" class="form-input" rows="4"></textarea>
+                </div>
+                <button class="btn btn-primary w-full" id="saveAnnBtn">Post Announcement</button>
+            </div>
+            <div class="md:col-span-2" id="annList"></div>
+        </div>
+    </section>
+
+    <!-- SETTINGS -->
+    <section id="settingsSection" class="view-section">
+        <div class="max-w-2xl">
+            <div class="glass-card">
+                <h3 class="mb-6">Department Settings</h3>
+                <div class="form-group mb-4">
+                    <label>External Links (JSON)</label>
+                    <textarea id="deptLinks" class="form-input" rows="5" placeholder='[{"name": "Library", "url": "https://..."}]'></textarea>
+                </div>
+                <button class="btn btn-primary" id="saveDeptSettingsBtn">Save Settings</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- GRADING -->
+    <section id="gradingSection" class="view-section">
+      <h2 class="text-xl font-bold mb-6">Grading â€” Pending Essay Results</h2>
+      <div id="gradingList" class="flex flex-col gap-6"></div>
+    </section>
+
+    <!-- NOTIFICATIONS -->
+    <section id="notificationsSection" class="view-section">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div class="lg:col-span-1 glass-card">
+          <h3 class="mb-6">Send Notification</h3>
+          <div class="form-group mb-4">
+            <label>Title</label>
+            <input type="text" id="notifTitle" class="form-input" placeholder="e.g. Exam Tomorrow!">
+          </div>
+          <div class="form-group mb-6">
+            <label>Message</label>
+            <textarea id="notifMsg" class="form-input" rows="4" placeholder="Notification message..."></textarea>
+          </div>
+          <button class="btn btn-primary w-full" id="sendNotifBtn">Send to All Students</button>
+        </div>
+        <div class="lg:col-span-2" id="notifSentList"></div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- QUESTION MODAL -->
+<div id="questionModal" class="modal-bg">
+    <div class="modal" style="max-width:520px;">
+        <h3 class="mb-4" id="qModalTitle">Add Question</h3>
+        <input type="hidden" id="editQuestionId">
+        <div class="form-group mb-4">
+          <label>Question Type</label>
+          <select id="qType" class="form-input" onchange="toggleQuestionType()">
+            <option value="mcq">MCQ â€” Multiple Choice</option>
+            <option value="boolean">True / False</option>
+            <option value="essay">Essay â€” Descriptive (Manual Grading)</option>
+          </select>
+        </div>
+        <div class="form-group mb-4">
+          <label>Points (Weight)</label>
+          <input type="number" id="qPoints" class="form-input" min="0.5" step="0.5" value="1" placeholder="e.g. 1.0">
+        </div>
+        <div class="form-group mb-4"><label>Question</label><textarea id="qText" class="form-input" rows="3"></textarea></div>
+        
+        <!-- MCQ Options -->
+        <div id="mcqOptions">
+          <div class="grid grid-cols-2 gap-4 mb-4">
+              <input type="text" id="optA" class="form-input" placeholder="Option A">
+              <input type="text" id="optB" class="form-input" placeholder="Option B">
+              <input type="text" id="optC" class="form-input" placeholder="Option C">
+              <input type="text" id="optD" class="form-input" placeholder="Option D">
+          </div>
+          <div class="form-group mb-4">
+            <label>Correct Answer</label>
+            <select id="qCorrect" class="form-input">
+              <option value="a">A</option><option value="b">B</option><option value="c">C</option><option value="d">D</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- True/False Options -->
+        <div id="booleanOptions" style="display:none;">
+          <div class="form-group mb-4">
+            <label>Correct Answer</label>
+            <select id="qCorrectBool" class="form-input">
+              <option value="true">True</option>
+              <option value="false">False</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Essay Model Answer -->
+        <div id="essayOptions" style="display:none;">
+          <div class="form-group mb-4">
+            <label>Model Answer (for reference)</label>
+            <textarea id="qModelAnswer" class="form-input" rows="3" placeholder="Model answer for grading reference..."></textarea>
+          </div>
+        </div>
+
+        <div class="flex gap-4">
+            <button class="btn btn-outline flex-1" onclick="closeModal('questionModal')">Cancel</button>
+            <button class="btn btn-primary flex-1" id="saveQuestionBtn">Save Question</button>
+        </div>
+    </div>
+</div>
+
+<!-- STUDENT RESULTS MODAL -->
+<div id="studentResultsModal" class="modal-bg">
+    <div class="modal" style="max-width:700px;">
+        <div class="flex justify-between items-center mb-6">
+            <h3 id="studentResultsTitle" class="font-bold">Student Results</h3>
+            <button class="text-muted" onclick="closeModal('studentResultsModal')"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="glass-card p-0 overflow-hidden border-none shadow-none">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Exam/Course</th>
+                        <th>Score</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody id="studentResultsTable"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+    <!-- UPLOAD MATERIAL MODAL -->
+    <div id="uploadMaterialModal" class="modal-bg">
+        <div class="modal" style="max-width:480px;">
+            <button class="absolute top-4 right-4 text-muted" onclick="closeModal('uploadMaterialModal')"><i class="fas fa-times"></i></button>
+            <h3 class="mb-6"><i class="fas fa-upload text-primary mr-2"></i>Upload Material</h3>
+            <p class="text-sm text-muted mb-4" id="uploadMatCourseLabel">Course: â€”</p>
+            <form id="materialForm">
+                <input type="hidden" id="uploadMatCourseId" required>
+                <div class="form-group mb-4">
+                    <label>Title</label>
+                    <input type="text" id="matTitle" class="form-input" placeholder="e.g. Lecture 1 - Basics" required>
+                </div>
+                <div class="form-group mb-4">
+                    <label>Type</label>
+                    <select id="matType" class="form-input">
+                        <option value="pdf">PDF Document</option>
+                        <option value="video">Video Lecture</option>
+                        <option value="ppt">PowerPoint (PPT)</option>
+                        <option value="word">Word (DOC)</option>
+                        <option value="image">Image / Diagram</option>
+                        <option value="file">Other File</option>
+                    </select>
+                </div>
+                <div class="form-group mb-6">
+                    <label>File</label>
+                    <input type="file" id="matFile" class="form-input" required>
+                </div>
+                <button type="submit" id="uploadBtn" class="btn btn-primary w-full">Submit for Review</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="editMaterialModal" class="modal-bg">
+        <div class="glass-card max-w-md w-full p-8 relative">
+            <button class="absolute top-4 right-4 text-muted" onclick="closeModal('editMaterialModal')"><i class="fas fa-times"></i></button>
+            <h3 class="text-xl font-bold mb-6">Edit Material</h3>
+            <input type="hidden" id="editMatId">
+            <div class="form-group mb-4">
+                <label>Title</label>
+                <input type="text" id="editMatTitle" class="form-input">
+            </div>
+            <div class="form-group mb-4">
+                <label>Type</label>
+                <select id="editMatType" class="form-input">
+                    <option value="pdf">PDF Document</option>
+                    <option value="video">Video Lecture</option>
+                    <option value="ppt">PowerPoint (PPT)</option>
+                    <option value="word">Word (DOC)</option>
+                    <option value="image">Image / Diagram</option>
+                    <option value="file">Other File</option>
+                </select>
+            </div>
+            <div class="form-group mb-6">
+                <label>Replace File (Optional)</label>
+                <input type="file" id="editMatFile" class="form-input" accept="image/*,application/pdf,video/*">
+            </div>
+            <button id="updateMatBtn" class="btn btn-primary w-full">Save Changes</button>
+        </div>
+    </div>
+
+    <div id="toastContainer" class="toast-container"></div>
+
+</body>
+</html>
+

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="pendingApproval">Account Pending - Akram Academy</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script type="module" crossorigin src="/assets/waiting_approval-DdDsKoKk.js"></script>
+  <link rel="modulepreload" crossorigin href="/assets/i18n-DRKnIWRY.js">
+  <link rel="modulepreload" crossorigin href="/assets/supabase-CizyiV9c.js">
+  <link rel="stylesheet" crossorigin href="/assets/i18n-COyG8zfE.css">
+</head>
+<body class="bg-light flex items-center justify-center min-vh-100">
+    <div class="glass-card text-center" style="max-width: 500px; padding: 4rem; border-radius: 30px;">
+        <div class="mb-6 text-primary" style="font-size: 3.5rem;">
+            <i class="fas fa-graduation-cap"></i>
+        </div>
+        
+        <div class="mb-6" style="color: var(--warning); font-size: 3rem;">
+            <i class="fas fa-user-clock fa-spin" style="--fa-animation-duration: 3s;"></i>
+        </div>
+
+        <h1 class="mb-4 text-2xl font-bold" data-i18n="pendingApproval">Pending Approval</h1>
+        
+        <p class="text-muted mb-8 text-lg" data-i18n="pendingMsg">
+            Your academic account has been created successfully. For security reasons, an administrator must verify your credentials before you can access the platform.
+        </p>
+
+        <div class="flex flex-col gap-4">
+            <button onclick="location.reload()" class="btn btn-primary py-4 text-lg shadow-lg">
+                <i class="fas fa-sync-alt"></i> <span data-i18n="checkStatus">Check Status</span>
+            </button>
+            <button id="logoutBtn" class="btn btn-outline py-3">
+                <i class="fas fa-sign-out-alt"></i> <span data-i18n="logout">Sign Out</span>
+            </button>
+        </div>
+        
+        <div class="mt-10 pt-6 border-t border-border">
+            <p class="text-xs text-muted">Akram Academy &copy; 2026. All rights reserved.</p>
+        </div>
+    </div>
+
+</body>
+</html>

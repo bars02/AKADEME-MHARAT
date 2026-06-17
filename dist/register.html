@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; media-src 'self' blob: https:; frame-src blob: https://www.youtube.com;">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="register">Register - Akram Academy</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script type="module" crossorigin src="/assets/register-CuGxsgBE.js"></script>
+  <link rel="modulepreload" crossorigin href="/assets/i18n-DRKnIWRY.js">
+  <link rel="modulepreload" crossorigin href="/assets/supabase-CizyiV9c.js">
+  <link rel="modulepreload" crossorigin href="/assets/ui-B_NTAJb_.js">
+  <link rel="stylesheet" crossorigin href="/assets/i18n-COyG8zfE.css">
+</head>
+<body class="bg-light">
+    <div class="auth-layout">
+        <!-- Visual Background Side -->
+        <div class="auth-visual">
+            <canvas id="particles-bg"></canvas>
+            <div class="auth-visual-content">
+                <a href="index.html" class="logo-medical mb-6" style="justify-content: center; text-decoration: none;">
+                    <div class="pulse-icon"><i class="fas fa-microscope"></i></div>
+                    <span class="brand-text">Maharat</span>
+                </a>
+                <h1 data-i18n="joinNetwork">Join the Network</h1>
+                <p data-i18n="registerSub">Be part of the next generation of medical professionals. Start your specialized training today.</p>
+            </div>
+        </div>
+
+        <!-- Form Side -->
+        <div class="auth-form-wrapper">
+            <div class="auth-glass-card">
+                <div class="text-center mb-8">
+                    <h2 class="text-2xl font-bold mb-2" data-i18n="register">Create Account</h2>
+                    <p class="text-muted text-sm" data-i18n="registerSub">Join our medical education network</p>
+                </div>
+
+                <form id="regForm" class="grid gap-4">
+                    <div class="form-group">
+                        <label data-i18n="fullName">Full Name</label>
+                        <input type="text" id="name" class="form-input" required placeholder="John Doe">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="form-group">
+                            <label data-i18n="role">Role</label>
+                            <select id="role" class="form-input" required>
+                                <option value="student" data-i18n="student">Student</option>
+                                <option value="academic" data-i18n="academic">Academic</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label data-i18n="department">Department</label>
+                            <select id="dept" class="form-input" required></select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label data-i18n="academicEmail">Email</label>
+                        <input type="email" id="email" class="form-input" required placeholder="name@domain.com">
+                    </div>
+                    <div class="form-group">
+                        <label data-i18n="password">Password</label>
+                        <input type="password" id="pass" class="form-input" required minlength="6" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢">
+                    </div>
+                    <button type="submit" id="subBtn" class="btn btn-primary w-full py-3 mt-2" style="font-size: 1rem;"><i class="fas fa-user-plus"></i> <span data-i18n="register">Register</span></button>
+                </form>
+                
+                <p class="text-center mt-6 text-sm text-muted">
+                    <span data-i18n="alreadyHaveAccount">Registered?</span> 
+                    <a href="login.html" class="text-primary font-bold hover:underline" data-i18n="login">Login</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div id="toastContainer" class="toast-container"></div>
+    <script src="js/particles-bg.js" defer></script>
+    <script defer>
+        document.addEventListener('DOMContentLoaded', () => {
+            if(window.ParticleNetwork) new window.ParticleNetwork('particles-bg');
+        });
+    </script>
+
+</body>
+</html>
+

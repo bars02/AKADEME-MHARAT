@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course Details - Maharat Academy</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .lab-header { background: #0f172a; padding: 6rem 2rem 4rem; color: white; text-align: center; }
+        .lab-tabs { display: flex; justify-content: center; gap: 8px; margin-top: -24px; position: sticky; top: 70px; z-index: 90; }
+        .lab-tab { padding: 12px 24px; background: white; border: 1px solid var(--border); border-radius: 12px; cursor: pointer; font-weight: 600; box-shadow: var(--shadow-sm); transition: 0.3s; display: flex; align-items: center; gap: 8px; }
+        .lab-tab.active { background: var(--primary); color: white; border-color: var(--primary); }
+        .content-panel { display: none; padding: 3rem 0; animation: fadeIn 0.4s ease-out; }
+        .content-panel.active { display: block; }
+        @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+
+        /* Simulator UI */
+        .sim-container { background: #1e293b; border-radius: 20px; padding: 2rem; color: #38bdf8; font-family: monospace; border: 8px solid #334155; }
+        .sim-display { background: #020617; height: 240px; border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; border: 2px solid #334155; overflow-y: auto; font-size: .9rem; line-height: 1.6; }
+        .sim-controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1rem; }
+
+        /* Chat UI */
+        .chat-container { display: flex; flex-direction: column; height: 500px; background: white; border-radius: 20px; border: 1px solid var(--border); overflow: hidden; }
+        .chat-messages { flex: 1; overflow-y: auto; padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; background: #f8fafc; }
+        .msg { max-width: 80%; padding: 12px 16px; border-radius: 15px; font-size: .9rem; line-height: 1.5; }
+        .msg.user { align-self: flex-end; background: var(--primary); color: white; border-bottom-right-radius: 2px; }
+        .msg.ai { align-self: flex-start; background: white; border: 1px solid var(--border); border-bottom-left-radius: 2px; box-shadow: var(--shadow-sm); }
+        .chat-input-area { padding: 1rem; border-top: 1px solid var(--border); display: flex; gap: 10px; background: white; }
+
+        /* Exam UI */
+        .q-card { background: white; padding: 2rem; border-radius: 20px; border: 1px solid var(--border); margin-bottom: 1.5rem; box-shadow: var(--shadow-sm); }
+        .opt-btn { width: 100%; text-align: left; padding: 12px 16px; border: 1px solid var(--border); border-radius: 10px; margin-top: 8px; cursor: pointer; background: transparent; transition: 0.2s; display: flex; align-items: center; gap: 12px; }
+        [dir="rtl"] .opt-btn { text-align: right; }
+        .opt-btn:hover { border-color: var(--primary); background: var(--primary-light); }
+        .opt-btn.selected { border-color: var(--primary); background: var(--primary-light); font-weight: 600; border-width: 2px; }
+
+        /* ===== CONTENT PROTECTION ===== */
+        /* Material Cards */
+        .mat-card { background: white; border-radius: 20px; border: 1px solid var(--border); overflow: hidden; box-shadow: var(--shadow-sm); transition: 0.3s; }
+        .mat-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+        .mat-card-header { padding: 1.25rem 1.5rem; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--border); }
+        .mat-type-icon { width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; }
+        .mat-type-icon.pdf { background: #fee2e2; color: #dc2626; }
+        .mat-type-icon.video { background: #ede9fe; color: #7c3aed; }
+        .mat-type-icon.image { background: #dbeafe; color: #1d4ed8; }
+        .mat-type-icon.ppt { background: #fff7ed; color: #ea580c; }
+        .mat-type-icon.word { background: #eff6ff; color: #1d4ed8; }
+        .mat-type-icon.file { background: #f0fdf4; color: #16a34a; }
+        .mat-open-btn { margin-left: auto; padding: 8px 18px; border-radius: 10px; background: var(--primary); color: white; border: none; cursor: pointer; font-size: .85rem; font-weight: 600; display: flex; align-items: center; gap: 6px; transition: 0.2s; }
+        .mat-open-btn:hover { background: var(--primary-dark, #1d4ed8); }
+
+        /* Secure Viewer Modal */
+        #secureViewer { display: none; position: fixed; inset: 0; z-index: 9999; background: rgba(10,12,20,0.92); backdrop-filter: blur(8px); flex-direction: column; }
+        #secureViewer.open { display: flex; }
+        #svHeader { background: #0f172a; padding: 1rem 1.5rem; display: flex; align-items: center; gap: 12px; flex-shrink: 0; border-bottom: 1px solid #1e293b; }
+        #svTitle { color: white; font-weight: 700; flex: 1; font-size: 1rem; }
+        #svClose { background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 1.2rem; padding: 4px 10px; border-radius: 8px; transition: 0.2s; }
+        #svClose:hover { background: #1e293b; color: white; }
+        #svContent { flex: 1; overflow: hidden; position: relative; }
+        #svContent iframe { width: 100%; height: 100%; border: none; display: block; }
+        #svContent video { width: 100%; height: 100%; background: black; display: block; }
+        #svContent img { max-width: 100%; max-height: 100%; object-fit: contain; margin: auto; display: block; padding: 1rem; }
+        .sv-protection-badge { position: absolute; bottom: 12px; right: 14px; background: rgba(15,23,42,0.7); color: #64748b; font-size: .65rem; padding: 4px 10px; border-radius: 20px; pointer-events: none; display: flex; align-items: center; gap: 5px; z-index: 10; }
+        
+        /* Viewer Loader */
+        .sv-loader { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: white; z-index: 5; transition: opacity 0.3s; }
+        .sv-loader.hidden { opacity: 0; pointer-events: none; }
+        .spinner { width: 40px; height: 40px; border: 4px solid #e2e8f0; border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; mb-4 }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Focus Guard Overlay */
+        #focusGuard { display: none; position: fixed; inset: 0; z-index: 99999; background: #0f172a; align-items: center; justify-content: center; flex-direction: column; color: white; }
+        #focusGuard.active { display: flex; }
+
+        /* No text selection on protected content */
+        #secureViewer, #materialsList { user-select: none; -webkit-user-select: none; }
+    </style>
+  <script type="module" crossorigin src="/assets/course_details-BWfYEw8p.js"></script>
+  <link rel="modulepreload" crossorigin href="/assets/i18n-DRKnIWRY.js">
+  <link rel="modulepreload" crossorigin href="/assets/supabase-CizyiV9c.js">
+  <link rel="modulepreload" crossorigin href="/assets/routing-BvDlne0Z.js">
+  <link rel="modulepreload" crossorigin href="/assets/ui-B_NTAJb_.js">
+  <link rel="stylesheet" crossorigin href="/assets/i18n-COyG8zfE.css">
+</head>
+<body class="bg-light">
+    <nav class="glass-nav px-8 py-4 flex justify-between items-center fixed t-0 l-0 r-0 z-100">
+        <a href="../dashboard/student.html" class="btn btn-outline btn-sm">← <span data-i18n="backToDash">Dashboard</span></a>
+        <div class="font-bold text-lg hidden-mobile" id="courseHeaderName">Course</div>
+        <div id="examTimer" class="font-bold text-danger bg-red-50 px-4 py-1 rounded-lg" style="display:none">00:00</div>
+    </nav>
+
+    <header class="lab-header">
+        <h1 id="courseTitle">Course Title</h1>
+        <p id="courseDesc" class="text-slate-400 max-w-2xl mx-auto mt-2"></p>
+    </header>
+
+    <div class="lab-tabs">
+        <div class="lab-tab active" data-tab="learning"><i class="fas fa-book"></i><span>Learning</span></div>
+        <div class="lab-tab" data-tab="simulator"><i class="fas fa-flask"></i><span>Simulator</span></div>
+        <div class="lab-tab" data-tab="ai"><i class="fas fa-robot"></i><span>AI Tutor</span></div>
+        <div class="lab-tab" data-tab="exam"><i class="fas fa-file-signature"></i><span>Exam</span></div>
+    </div>
+
+    <main class="container">
+        <!-- Learning Panel -->
+        <section id="learning" class="content-panel active">
+            <div id="materialsList" class="flex flex-col gap-10">
+                <!-- Materials go here -->
+            </div>
+        </section>
+
+        <!-- Simulator Panel -->
+        <section id="simulator" class="content-panel">
+            <div class="max-w-3xl mx-auto">
+                <div class="sim-container">
+                    <div class="sim-display" id="simDisplay">> SYSTEM INITIALIZED...<br>> READY FOR SIMULATION.</div>
+                    <div class="sim-controls">
+                        <button class="btn btn-primary" onclick="simAction('init')">INITIALIZE</button>
+                        <button class="btn btn-primary" onclick="simAction('calibrate')">CALIBRATE</button>
+                        <button class="btn btn-primary" onclick="simAction('analyze')">ANALYZE SAMPLE</button>
+                        <button class="btn btn-outline" style="color:white;border-color:#475569" onclick="simAction('reset')">RESET</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- AI Assistant Panel -->
+        <section id="ai" class="content-panel">
+            <div class="max-w-2xl mx-auto">
+                <div class="chat-container">
+                    <div class="chat-messages" id="chatMessages">
+                        <div class="msg ai">
+                            Hello! I am your Maharat Academy Assistant. How can I help you with this course today?
+                        </div>
+                    </div>
+                    <div class="chat-input-area">
+                        <input type="text" id="chatInput" class="form-input" placeholder="Ask me anything...">
+                        <button id="sendBtn" class="btn btn-primary">Send</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Exam Panel -->
+        <section id="exam" class="content-panel">
+            <div id="examIntro" class="text-center glass-card max-w-xl mx-auto py-12">
+                <i class="fas fa-medal text-6xl text-primary mb-6"></i>
+                <h2 class="text-2xl mb-4">Course Certification</h2>
+                <p class="text-muted mb-8">Ready to test your knowledge? This exam consists of multiple-choice questions. You need 60% to pass.</p>
+                <button class="btn btn-primary py-4 px-12 text-lg" id="startExamBtn">Start Exam Now</button>
+            </div>
+            <div id="examEngine" style="display:none" class="max-w-2xl mx-auto">
+                <div id="questionsContainer"></div>
+                <button class="btn btn-primary w-full py-4 mt-8 text-lg" id="submitExamBtn">Submit Final Answers</button>
+            </div>
+        </section>
+    </main>
+
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- ===== SECURE CONTENT VIEWER ===== -->
+    <div id="secureViewer">
+        <div id="svHeader">
+            <i class="fas fa-shield-alt" style="color:#3b82f6;"></i>
+            <span id="svTitle">Protected Content</span>
+            <span style="background:#1e293b;color:#64748b;font-size:.7rem;padding:3px 10px;border-radius:20px;margin-left:auto;margin-right:12px;">
+                <i class="fas fa-lock mr-1"></i>Maharat Academy — Protected
+            </span>
+            <button id="svClose" onclick="closeSecureViewer()"><i class="fas fa-times"></i></button>
+        </div>
+        <div id="svContent">
+            <div id="svLoader" class="sv-loader hidden">
+                <div class="spinner mb-4"></div>
+                <div class="text-slate-500 font-bold" id="svLoaderText">Loading document...</div>
+                <div class="text-xs text-slate-400 mt-2">Large files may take a few moments</div>
+            </div>
+            <!-- Content injected here -->
+            <div class="sv-protection-badge" id="svBadge"><i class="fas fa-shield-alt"></i> Maharat Academy</div>
+        </div>
+    </div>
+
+    <!-- ===== FOCUS GUARD ===== -->
+    <div id="focusGuard">
+        <i class="fas fa-lock fa-3x mb-6" style="color:#3b82f6;"></i>
+        <h2 class="text-2xl font-bold mb-2">Content Protected</h2>
+        <p style="color:#64748b;">Return to this window to continue viewing.</p>
+    </div>
+
+</body>
+</html>

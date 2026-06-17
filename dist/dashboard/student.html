@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" translate="no">
+<head>
+    <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; media-src 'self' blob: https:; frame-src blob: https://www.youtube.com;">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="google" content="notranslate">
+    <title>Student Dashboard - Maharat Academy</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .course-card { background: white; border-radius: 20px; overflow: hidden; border: 1px solid var(--border); transition: var(--transition); }
+        .course-card:hover { transform: translateY(-10px); box-shadow: var(--shadow-lg); border-color: var(--primary); }
+        .course-image { height: 160px; overflow: hidden; position: relative; background: #f8fafc; }
+        .course-image img { width: 100%; height: 100%; object-fit: cover; }
+        .course-image .placeholder { display: flex; align-items: center; justify-content: center; height: 100%; color: var(--border); }
+        
+        .announcement-banner { background: linear-gradient(135deg, var(--primary), var(--accent)); color: white; padding: 1.5rem; border-radius: 20px; margin-bottom: 2rem; position: relative; overflow: hidden; }
+        .announcement-banner::after { content: '\f0a1'; font-family: 'Font Awesome 5 Free'; font-weight: 900; position: absolute; right: -20px; bottom: -20px; font-size: 8rem; opacity: 0.1; transform: rotate(-15deg); }
+        
+        .link-pill { display: flex; align-items: center; gap: 10px; padding: 10px 20px; background: white; border: 1px solid var(--border); border-radius: 50px; text-decoration: none; color: var(--text-dark); transition: var(--transition); font-size: .85rem; }
+        .link-pill:hover { background: var(--primary-light); color: var(--primary); border-color: var(--primary); }
+
+        /* Embedded Tool UI */
+        .sim-container { background: #1e293b; border-radius: 20px; padding: 2rem; color: #38bdf8; font-family: monospace; border: 8px solid #334155; }
+        .sim-display { background: #020617; height: 240px; border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; border: 2px solid #334155; overflow-y: auto; font-size: .9rem; line-height: 1.6; }
+        .sim-controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1rem; }
+        
+        .chat-container { display: flex; flex-direction: column; height: 500px; background: white; border-radius: 20px; border: 1px solid var(--border); overflow: hidden; }
+        .chat-messages { flex: 1; overflow-y: auto; padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; background: #f8fafc; }
+        .msg { max-width: 80%; padding: 12px 16px; border-radius: 15px; font-size: .9rem; line-height: 1.5; }
+        .msg.user { align-self: flex-end; background: var(--primary); color: white; border-bottom-right-radius: 2px; }
+        .msg.ai { align-self: flex-start; background: white; border: 1px solid var(--border); border-bottom-left-radius: 2px; box-shadow: var(--shadow-sm); }
+        .chat-input-area { padding: 1rem; border-top: 1px solid var(--border); display: flex; gap: 10px; background: white; }
+        
+        .q-card { background: white; padding: 2rem; border-radius: 20px; border: 1px solid var(--border); margin-bottom: 1.5rem; box-shadow: var(--shadow-sm); }
+        .opt-btn { width: 100%; text-align: left; padding: 12px 16px; border: 1px solid var(--border); border-radius: 10px; margin-top: 8px; cursor: pointer; background: transparent; transition: 0.2s; display: flex; align-items: center; gap: 12px; }
+        [dir="rtl"] .opt-btn { text-align: right; }
+        .opt-btn:hover { border-color: var(--primary); background: var(--primary-light); }
+        .opt-btn.selected { border-color: var(--primary); background: var(--primary-light); font-weight: 600; border-width: 2px; }
+
+        .mat-card { background: white; border-radius: 20px; border: 1px solid var(--border); overflow: hidden; box-shadow: var(--shadow-sm); transition: 0.3s; margin-bottom:1rem;}
+        .mat-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+        .mat-card-header { padding: 1.25rem 1.5rem; display: flex; align-items: center; gap: 12px; }
+        .mat-type-icon { width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; }
+        .mat-type-icon.pdf { background: #fee2e2; color: #dc2626; }
+        .mat-type-icon.video { background: #ede9fe; color: #7c3aed; }
+        .mat-type-icon.image { background: #dbeafe; color: #1d4ed8; }
+        .mat-type-icon.ppt { background: #fff7ed; color: #ea580c; }
+        .mat-type-icon.word { background: #eff6ff; color: #1d4ed8; }
+        .mat-type-icon.file { background: #f0fdf4; color: #16a34a; }
+        .mat-open-btn { margin-left: auto; padding: 8px 18px; border-radius: 10px; background: var(--primary); color: white; border: none; cursor: pointer; font-size: .85rem; font-weight: 600; display: flex; align-items: center; gap: 6px; transition: 0.2s; }
+        .mat-open-btn:hover { background: var(--primary-dark, #1d4ed8); }
+
+        #secureViewer { display: none; position: fixed; inset: 0; z-index: 9999; background: rgba(10,12,20,0.92); backdrop-filter: blur(8px); flex-direction: column; }
+        #secureViewer.open { display: flex; }
+        #svHeader { background: #0f172a; padding: 1rem 1.5rem; display: flex; align-items: center; gap: 12px; flex-shrink: 0; border-bottom: 1px solid #1e293b; }
+        #svTitle { color: white; font-weight: 700; flex: 1; font-size: 1rem; }
+        #svClose { background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 1.2rem; padding: 4px 10px; border-radius: 8px; transition: 0.2s; }
+        #svClose:hover { background: #1e293b; color: white; }
+        #svContent { flex: 1; overflow: hidden; position: relative; }
+        #svContent iframe { width: 100%; height: 100%; border: none; display: block; }
+        #svContent video { width: 100%; height: 100%; background: black; display: block; }
+        #svContent img { max-width: 100%; max-height: 100%; object-fit: contain; margin: auto; display: block; padding: 1rem; }
+        .sv-protection-badge { position: absolute; bottom: 12px; right: 14px; background: rgba(15,23,42,0.7); color: #64748b; font-size: .65rem; padding: 4px 10px; border-radius: 20px; pointer-events: none; display: flex; align-items: center; gap: 5px; z-index: 10; }
+        .sv-loader { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: white; z-index: 5; transition: opacity 0.3s; }
+        .sv-loader.hidden { opacity: 0; pointer-events: none; }
+        .spinner { width: 40px; height: 40px; border: 4px solid #e2e8f0; border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 1rem; }
+        
+        #focusGuard { display: none; position: fixed; inset: 0; z-index: 99999; background: #0f172a; align-items: center; justify-content: center; flex-direction: column; color: white; }
+        #focusGuard.active { display: flex; }
+        #secureViewer, #coursesSection { user-select: none; -webkit-user-select: none; }
+    </style>
+  <script type="module" crossorigin src="/assets/student-DKxZy0wV.js"></script>
+  <link rel="modulepreload" crossorigin href="/assets/i18n-DRKnIWRY.js">
+  <link rel="modulepreload" crossorigin href="/assets/supabase-CizyiV9c.js">
+  <link rel="modulepreload" crossorigin href="/assets/routing-BvDlne0Z.js">
+  <link rel="modulepreload" crossorigin href="/assets/ui-B_NTAJb_.js">
+  <link rel="stylesheet" crossorigin href="/assets/i18n-COyG8zfE.css">
+</head>
+<body class="bg-light">
+<div class="dashboard-layout">
+
+  <!-- ======= SIDEBAR ======= -->
+  <aside class="sidebar" id="sidebar">
+    <div class="logo mb-10 flex justify-between items-center w-full pr-4">
+      <div>
+        <i class="fas fa-graduation-cap"></i>
+        <span data-i18n="appName">Maharat Academy</span>
+      </div>
+      <button class="mobile-only" style="background:none;border:none;color:var(--text);font-size:1.2rem;cursor:pointer;" onclick="document.getElementById('sidebar').classList.remove('open')">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <nav>
+      <a href="#" class="nav-link active" data-view="overview">
+        <i class="fas fa-home"></i><span data-i18n="home">Home</span>
+      </a>
+      <a href="#" class="nav-link" data-view="profile">
+        <i class="fas fa-user"></i><span data-i18n="myProfile">My Profile</span>
+      </a>
+      <a href="#" class="nav-link" data-view="courses">
+        <i class="fas fa-book"></i><span data-i18n="coursesMaterials">Courses & Materials</span>
+      </a>
+      <a href="#" class="nav-link" data-view="aiList">
+        <i class="fas fa-robot"></i><span data-i18n="aiTutor">AI Tutor</span>
+      </a>
+      <a href="#" class="nav-link" data-view="simulatorList">
+        <i class="fas fa-flask"></i><span data-i18n="simulator">Simulator</span>
+      </a>
+      <a href="#" class="nav-link" data-view="tourList">
+        <i class="fas fa-vr-cardboard"></i><span data-i18n="3dTour">3D Tour</span>
+      </a>
+      <a href="#" class="nav-link" data-view="examsList">
+        <i class="fas fa-file-signature"></i><span data-i18n="exams">Exams</span>
+      </a>
+      <a href="#" class="nav-link" data-view="results">
+        <i class="fas fa-poll-h"></i><span data-i18n="myResults">My Results</span>
+      </a>
+      <a href="#" class="nav-link" data-view="notifications" id="notifNavLink">
+        <i class="fas fa-bell"></i><span>Notifications <span id="notifBadge" style="display:none;background:var(--danger);color:white;border-radius:50%;padding:1px 6px;font-size:.65rem;margin-left:4px;">0</span></span>
+      </a>
+      <a href="#" class="nav-link" data-view="announcements">
+        <i class="fas fa-bullhorn"></i><span data-i18n="announcements">Announcements</span>
+      </a>
+      <div style="margin-top:auto;border-top:1px solid var(--border);padding-top:1rem;">
+        <button id="logoutBtn" class="nav-link w-full" style="background:none;border:none;cursor:pointer;color:var(--danger);">
+          <i class="fas fa-sign-out-alt"></i><span data-i18n="logout">Sign Out</span>
+        </button>
+      </div>
+    </nav>
+  </aside>
+
+  <!-- ======= MAIN ======= -->
+  <main class="main-content">
+    <header class="top-header">
+      <div class="flex items-center gap-4">
+        <button id="mobileMenuBtn" class="btn btn-outline btn-sm mobile-only">
+          <i class="fas fa-bars"></i>
+        </button>
+        <div>
+          <h1 id="viewTitle" class="text-2xl font-bold">Home</h1>
+          <p class="text-sm text-muted" id="deptInfo">My Department</p>
+        </div>
+      </div>
+      <div class="flex gap-4 items-center">
+        <button id="langToggle" class="btn btn-outline btn-sm" data-i18n="switchLang">Ø§Ù„Ø¹Ø±Ø¨ÙŠØ©</button>
+      </div>
+    </header>
+
+    <!-- OVERVIEW -->
+    <section id="overviewSection" class="view-section active">
+      <!-- Stats Row -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:rgba(37,99,235,.1);color:var(--primary);"><i class="fas fa-book"></i></div>
+          <div><div class="text-2xl font-bold" id="statCourses">0</div><div class="text-sm text-muted">Available Courses</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:rgba(16,185,129,.1);color:var(--success);"><i class="fas fa-check-circle"></i></div>
+          <div><div class="text-2xl font-bold" id="statCompleted">0</div><div class="text-sm text-muted">Exams Taken</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:rgba(245,158,11,.1);color:var(--warning);"><i class="fas fa-star"></i></div>
+          <div><div class="text-2xl font-bold" id="statAvgScore">â€”</div><div class="text-sm text-muted">Average Score</div></div>
+        </div>
+      </div>
+
+      <!-- Latest Announcement -->
+      <div id="latestAnn" style="display:none;">
+          <div class="announcement-banner">
+              <h3 class="mb-2" id="annTitle">News!</h3>
+              <p class="text-sm opacity-90" id="annBody">Checking for updates...</p>
+          </div>
+      </div>
+
+      <!-- External Links -->
+      <div class="mb-10" id="linksArea" style="display:none;">
+          <h3 class="text-sm font-bold text-muted uppercase mb-4 tracking-widest">Resources &amp; Links</h3>
+          <div id="linksList" class="flex flex-wrap gap-4"></div>
+      </div>
+
+      <!-- Programs -->
+      <div>
+          <h3 class="text-sm font-bold text-muted uppercase mb-4 tracking-widest">Department Programs</h3>
+          <div id="programGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
+      </div>
+    </section>
+
+    <!-- PROFILE -->
+    <section id="profileSection" class="view-section">
+      <h2 class="text-xl font-bold mb-6" data-i18n="myProfile">My Profile</h2>
+      <div class="glass-card max-w-xl">
+          <div class="flex items-center gap-6 mb-6">
+              <div class="w-20 h-20 rounded-full flex items-center justify-center text-white font-bold text-3xl" style="background:var(--primary);">
+                <i class="fas fa-user-graduate"></i>
+              </div>
+              <div>
+                  <h3 class="text-2xl font-bold" id="profileName">Student Name</h3>
+                  <p class="text-muted" id="profileArName">Ø§Ù„Ø§Ø³Ù… Ø¨Ø§Ù„Ø¹Ø±Ø¨ÙŠ</p>
+                  <p class="text-sm text-muted mt-2">ID: <span id="profileId" class="font-mono bg-slate-100 px-2 py-1 rounded">...</span></p>
+              </div>
+          </div>
+      </div>
+    </section>
+
+    <!-- COURSES & MATERIALS -->
+    <!-- PROGRAM COURSES & MATERIALS -->
+    <section id="coursesSection" class="view-section">
+      <div class="flex items-center gap-4 mb-6">
+        <button class="btn btn-outline btn-sm" onclick="document.querySelector('.nav-link[data-view=overview]').click()">
+          <i class="fas fa-arrow-left mr-2"></i>Programs
+        </button>
+        <div>
+          <h2 class="text-xl font-bold" id="programCoursesTitle" data-i18n="coursesMaterials">Program Courses</h2>
+          <p class="text-xs text-muted">Courses within this program</p>
+        </div>
+      </div>
+      
+      <!-- Courses Grid for the selected program -->
+      <div id="programCourseGrid" class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8"></div>
+
+      <!-- Materials List for the selected course -->
+      <div id="materialsContainer" style="display:none;" class="glass-card">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-lg font-bold" id="selectedCourseTitle">Course Materials</h3>
+          <button class="btn btn-outline btn-sm" onclick="document.getElementById('materialsContainer').style.display='none'"><i class="fas fa-times"></i></button>
+        </div>
+        <div id="materialsList" class="flex flex-col gap-4">
+          <!-- Materials will be loaded here -->
+        </div>
+      </div>
+    </section>
+
+    <!-- AI TUTOR LIST -->
+    <section id="aiListSection" class="view-section">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-xl font-bold" data-i18n="aiTutor">AI Tutor</h2>
+        <select id="aiCourseSelect" class="form-input w-48" onchange="initAiChat(this.value)"></select>
+      </div>
+      <div class="chat-container">
+        <div class="chat-messages" id="chatMessages">
+            <div class="msg ai">Hello! I am your Maharat Academy Assistant. Select a course to start chatting.</div>
+        </div>
+        <div class="chat-input-area">
+            <input type="text" id="chatInput" class="form-input" placeholder="Ask me anything..." onkeypress="if(event.key==='Enter') sendMessage()">
+            <button id="sendBtn" class="btn btn-primary" onclick="sendMessage()">Send</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- SIMULATOR LIST -->
+    <section id="simulatorListSection" class="view-section">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-xl font-bold" data-i18n="simulator">Simulator</h2>
+        <select id="simCourseSelect" class="form-input w-48"></select>
+      </div>
+      <div class="sim-container">
+        <div class="sim-display" id="simDisplay">> SYSTEM INITIALIZED...<br>> READY FOR SIMULATION.</div>
+        <div class="sim-controls">
+            <button class="btn btn-primary" onclick="simAction('init')">INITIALIZE</button>
+            <button class="btn btn-primary" onclick="simAction('calibrate')">CALIBRATE</button>
+            <button class="btn btn-primary" onclick="simAction('analyze')">ANALYZE SAMPLE</button>
+            <button class="btn btn-outline" style="color:white;border-color:#475569" onclick="simAction('reset')">RESET</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3D TOUR LIST -->
+    <section id="tourListSection" class="view-section">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-xl font-bold" data-i18n="3dTour">3D Tour</h2>
+      </div>
+      <div class="glass-card text-center py-20">
+        <i class="fas fa-vr-cardboard text-6xl text-slate-300 mb-4"></i>
+        <h3 class="text-xl font-bold mb-2">3D Tour Environment</h3>
+        <p class="text-muted">Virtual Reality environments are currently being updated.</p>
+      </div>
+    </section>
+
+    <!-- EXAMS LIST -->
+    <section id="examsListSection" class="view-section">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-xl font-bold" data-i18n="exams">Exams</h2>
+        <select id="examCourseSelect" class="form-input w-48" onchange="resetExamUI()"></select>
+      </div>
+      
+      <div id="examIntro" class="text-center glass-card max-w-xl mx-auto py-12">
+          <i class="fas fa-medal text-6xl text-primary mb-6"></i>
+          <h2 class="text-2xl mb-4">Course Certification</h2>
+          <p class="text-muted mb-8">Ready to test your knowledge? This exam consists of multiple-choice questions. You need 60% to pass.</p>
+          <button class="btn btn-primary py-4 px-12 text-lg" id="startExamBtn" onclick="startExam()">Start Exam Now</button>
+      </div>
+      
+      <div id="examEngine" style="display:none" class="max-w-2xl mx-auto">
+          <div class="flex justify-between items-center mb-6 p-4 rounded-xl border" id="timerBox" style="background:#f8fafc;border-color:var(--border);">
+            <div class="font-bold" id="timerLabel" style="color:var(--text-dark);">
+              <i class="fas fa-clock mr-2"></i>Time Remaining
+            </div>
+            <div id="examTimer" class="font-bold text-2xl" style="color:var(--text-dark);">00:00</div>
+          </div>
+          <div id="questionsContainer"></div>
+          <button class="btn btn-primary w-full py-4 mt-8 text-lg" id="submitExamBtn" onclick="submitExam(false)">Submit Final Answers</button>
+      </div>
+
+      <!-- ===== EXAM RESULT CARD ===== -->
+      <div id="examResultCard" style="display:none;" class="max-w-xl mx-auto">
+        <div class="glass-card text-center py-16 px-8">
+          <div id="examResultIcon" style="font-size:5rem;margin-bottom:1.5rem;"></div>
+          <div id="examResultScore" style="font-size:5rem;font-weight:800;line-height:1;margin-bottom:1rem;"></div>
+          <h3 id="examResultTitle" class="text-2xl font-bold mb-3"></h3>
+          <p id="examResultMsg" class="text-muted mb-8 mx-auto" style="max-width:26rem;"></p>
+          <div class="flex gap-4 justify-center flex-wrap">
+            <button onclick="window.resetExamUI()" class="btn btn-outline"><i class="fas fa-redo mr-2"></i>Back to Exams</button>
+            <button onclick="document.querySelector('.nav-link[data-view=\'results\']').click(); loadResults();" class="btn btn-primary"><i class="fas fa-poll-h mr-2"></i>View All Results</button>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- RESULTS -->
+    <section id="resultsSection" class="view-section">
+        <h2 class="text-xl font-bold mb-6">My Exam Results</h2>
+        <div class="glass-card p-0 overflow-hidden">
+            <table class="data-table"><thead><tr>
+                <th>Course</th><th>Score</th><th>Status</th><th>Date</th>
+            </tr></thead><tbody id="resultsTable"></tbody></table>
+        </div>
+    </section>
+
+    <!-- NOTIFICATIONS -->
+    <section id="notificationsSection" class="view-section">
+        <h2 class="text-xl font-bold mb-6">Notifications</h2>
+        <div id="notifList" class="flex flex-col gap-4 max-w-3xl"></div>
+    </section>
+
+    <!-- ANNOUNCEMENTS -->
+    <section id="announcementsSection" class="view-section">
+        <h2 class="text-xl font-bold mb-6">Department News</h2>
+        <div id="fullAnnList" class="flex flex-col gap-6 max-w-3xl"></div>
+    </section>
+
+  </main>
+</div>
+
+<div id="toastContainer" class="toast-container"></div>
+
+<!-- ===== SECURE CONTENT VIEWER ===== -->
+<div id="secureViewer">
+    <div id="svHeader">
+        <i class="fas fa-shield-alt" style="color:#3b82f6;"></i>
+        <span id="svTitle">Protected Content</span>
+        <span style="background:#1e293b;color:#64748b;font-size:.7rem;padding:3px 10px;border-radius:20px;margin-left:auto;margin-right:12px;">
+            <i class="fas fa-lock mr-1"></i>Maharat Academy â€” Protected
+        </span>
+        <button id="svClose" onclick="closeSecureViewer()"><i class="fas fa-times"></i></button>
+    </div>
+    <div id="svContent">
+        <div id="svLoader" class="sv-loader hidden">
+            <div class="spinner mb-4"></div>
+            <div class="text-slate-500 font-bold" id="svLoaderText">Loading document...</div>
+            <div class="text-xs text-slate-400 mt-2">Large files may take a few moments</div>
+        </div>
+        <div class="sv-protection-badge" id="svBadge"><i class="fas fa-shield-alt"></i> Maharat Academy</div>
+    </div>
+</div>
+
+<!-- ===== FOCUS GUARD ===== -->
+<div id="focusGuard">
+    <i class="fas fa-lock fa-3x mb-6" style="color:#3b82f6;"></i>
+    <h2 class="text-2xl font-bold mb-2">Content Protected</h2>
+    <p style="color:#64748b;">Return to this window to continue viewing.</p>
+</div>
+
+</body>
+</html>
+

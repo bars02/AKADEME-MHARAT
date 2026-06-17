@@ -3,6 +3,7 @@
 
 <head>
   <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.groq.com; media-src 'self' blob: https:; frame-src blob: https://www.youtube.com;">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="google" content="notranslate">
   <title>Admin Dashboard - Maharat Academy</title>
@@ -130,6 +131,7 @@
 
 <body class="bg-light">
   <div class="dashboard-layout">
+    <div id="sidebarOverlay" class="sidebar-overlay" onclick="document.getElementById('sidebar').classList.remove('open'); this.classList.remove('open')"></div>
 
     <!-- ======= SIDEBAR ======= -->
     <aside class="sidebar" id="sidebar">
@@ -172,7 +174,7 @@
           </div>
         </div>
         <div class="flex gap-4 items-center">
-          <button id="langToggle" class="btn btn-outline btn-sm" data-i18n="switchLang">العربية</button>
+          <button id="langToggle" class="btn btn-outline btn-sm" data-i18n="switchLang">Ø§Ù„Ø¹Ø±Ø¨ÙŠØ©</button>
           <div class="flex items-center gap-3">
             <div>
               <div id="adminName" class="font-bold">Admin</div>
@@ -290,30 +292,49 @@
         <div id="deptList" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
       </section>
 
-      <!-- DEPT COURSES DRILL-DOWN (not in sidebar nav, shown programmatically) -->
-      <section id="deptCoursesSection" class="view-section">
+      <!-- DEPT PROGRAMS DRILL-DOWN -->
+      <section id="deptProgramsSection" class="view-section">
         <div class="flex items-center gap-4 mb-6">
           <button class="btn btn-outline btn-sm" onclick="backToDepts()">
             <i class="fas fa-arrow-left mr-2"></i>Departments
           </button>
           <div>
-            <h2 class="text-xl font-bold" id="deptCoursesTitle">Department Courses</h2>
-            <p class="text-sm text-muted" id="deptCoursesSubtitle">Manage all courses in this department</p>
+            <h2 class="text-xl font-bold" id="deptProgramsTitle">Department Programs</h2>
+            <p class="text-sm text-muted" id="deptProgramsSubtitle">Manage all programs in this department</p>
           </div>
         </div>
         <div class="flex justify-end mb-4">
-          <button class="btn btn-primary" id="addCourseForDeptBtn">
-            <i class="fas fa-plus mr-2"></i>Add Course to This Department
+          <button class="btn btn-primary" id="addProgramBtn">
+            <i class="fas fa-plus mr-2"></i>Add Program
           </button>
         </div>
-        <div id="deptCourseList" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
+        <div id="deptProgramList" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
+      </section>
+
+      <!-- PROGRAM COURSES DRILL-DOWN -->
+      <section id="programCoursesSection" class="view-section">
+        <div class="flex items-center gap-4 mb-6">
+          <button class="btn btn-outline btn-sm" onclick="backToPrograms()">
+            <i class="fas fa-arrow-left mr-2"></i>Programs
+          </button>
+          <div>
+            <h2 class="text-xl font-bold" id="programCoursesTitle">Program Courses</h2>
+            <p class="text-sm text-muted" id="programCoursesSubtitle">Manage all courses in this program</p>
+          </div>
+        </div>
+        <div class="flex justify-end mb-4">
+          <button class="btn btn-primary" id="addCourseForProgramBtn">
+            <i class="fas fa-plus mr-2"></i>Add Course
+          </button>
+        </div>
+        <div id="programCourseList" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
       </section>
 
   <!-- ADD MATERIAL MODAL (Admin) -->
   <div id="adminMatModal" class="modal-bg">
     <div class="modal" style="max-width:480px;">
       <h3><i class="fas fa-file-plus text-primary mr-2"></i>Add Material</h3>
-      <p class="text-sm text-muted mb-6" id="adminMatCourseLabel">Course: —</p>
+      <p class="text-sm text-muted mb-6" id="adminMatCourseLabel">Course: â€”</p>
       <input type="hidden" id="adminMatCourseId">
       <div class="form-group mb-4">
         <label>Material Title</label>
@@ -420,13 +441,38 @@
     </div>
   </div>
 
+  <div class="modal-bg" id="programModal">
+    <div class="modal" style="max-width:440px;">
+      <h3><i class="fas fa-project-diagram text-primary mr-2"></i>Program</h3>
+      <input type="hidden" id="programEditId">
+      <input type="hidden" id="programDeptId">
+      <div class="form-group mb-4">
+        <label>Program Name</label>
+        <input type="text" id="programName" class="form-input" placeholder="e.g. X-Ray Program">
+      </div>
+      <div class="form-group mb-4">
+        <label>Program Image</label>
+        <input type="file" id="programFile" class="form-input" accept="image/*">
+        <input type="text" id="programImage" class="form-input mt-2" placeholder="Or paste image URL">
+      </div>
+      <div class="form-group mb-6">
+        <label>Description</label>
+        <textarea id="programDesc" class="form-input" rows="3"></textarea>
+      </div>
+      <div class="flex gap-4">
+        <button class="btn btn-outline flex-1" onclick="closeModal('programModal')">Cancel</button>
+        <button class="btn btn-primary flex-1" id="saveProgramBtn">Save</button>
+      </div>
+    </div>
+  </div>
+
   <div class="modal-bg" id="courseModal">
     <div class="modal" style="max-width:440px;">
       <h3><i class="fas fa-book text-primary mr-2"></i>Course</h3>
       <input type="hidden" id="courseEditId">
-      <div class="form-group mb-4">
-        <label>Department</label>
-        <select id="courseDeptId" class="form-input"></select>
+      <div class="form-group mb-4" style="display:none;">
+        <label>Program</label>
+        <input type="hidden" id="courseProgramId">
       </div>
       <div class="form-group mb-4">
         <label>Course Name</label>
@@ -503,9 +549,11 @@
     import i18n from '../js/i18n.js';
     import { routing } from '../js/services/routing.js';
     import { supabase } from '../js/services/supabase.js';
-    import { ui } from '../js/services/ui.js';
+    import { ui, esc } from '../js/services/ui.js';
 
-    let allUsers = [], allDepts = [], allCourses = [], myId = null;
+    let allUsers = [], allDepts = [], allPrograms = [], allCourses = [], myId = null;
+    let activeDeptId = null; // tracks the currently open department
+    let activeProgramId = null; // tracks the currently open program
 
     async function init() {
       const profile = await routing.checkAccess(['admin']);
@@ -553,10 +601,10 @@
       users.forEach(u => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td class="font-medium">${u.name}</td>
-            <td><span class="role-badge ${u.role}">${u.role}</span></td>
-            <td>${u.departments?.name || '—'}</td>
-            <td><span class="status-badge ${u.status}">${u.status}</span></td>
+            <td class="font-medium">${esc(u.name)}</td>
+            <td><span class="role-badge ${esc(u.role)}">${esc(u.role)}</span></td>
+            <td>${esc(u.departments?.name || 'â€”')}</td>
+            <td><span class="status-badge ${esc(u.status)}">${esc(u.status)}</span></td>
             <td>
                 ${u.status === 'pending' ? `<button class="btn btn-primary btn-sm" onclick="approveUser('${u.id}')"><i class="fas fa-check"></i></button>` : ''}
                 <button class="btn btn-outline btn-sm" onclick="deleteUser('${u.id}')"><i class="fas fa-trash"></i></button>
@@ -575,32 +623,25 @@
       pendingUsers.forEach(u => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td>${u.name}</td>
-            <td><span class="role-badge ${u.role}">${u.role}</span></td>
-            <td>${u.departments?.name || 'N/A'}</td>
+            <td>${esc(u.name)}</td>
+            <td><span class="role-badge ${esc(u.role)}">${esc(u.role)}</span></td>
+            <td>${esc(u.departments?.name || 'N/A')}</td>
             <td><button class="btn btn-primary btn-sm" onclick="approveUser('${u.id}')">Approve</button></td>`;
         tbody.appendChild(tr);
       });
     }
 
-    let activeDeptId = null; // tracks the currently open department
-
     async function loadDepts() {
       const { data: depts } = await supabase.from('departments').select('*').order('name');
-      // Fetch course counts per department in one query
-      const { data: counts } = await supabase
-        .from('courses')
-        .select('department_id, status');
+      // Fetch program counts per department
+      const { data: counts } = await supabase.from('programs').select('department_id');
 
       allDepts = depts || [];
       const list = document.getElementById('deptList');
       list.innerHTML = '';
 
       allDepts.forEach(d => {
-        const deptCourses = (counts || []).filter(c => c.department_id === d.id);
-        const publishedCount = deptCourses.filter(c => c.status === 'published').length;
-        const pendingCount = deptCourses.filter(c => c.status === 'pending_review').length;
-        const totalCount = deptCourses.length;
+        const totalCount = (counts || []).filter(p => p.department_id === d.id).length;
 
         const card = document.createElement('div');
         card.className = 'glass-card overflow-hidden p-0 transition-all hover:-translate-y-1 hover:shadow-xl';
@@ -609,66 +650,53 @@
           <!-- Dept Image -->
           <div class="relative h-36 bg-gradient-to-br from-blue-50 to-indigo-100 overflow-hidden">
             ${d.image_url
-              ? `<img src="${d.image_url}" class="w-full h-full object-cover opacity-80">`
+              ? `<img src="${esc(d.image_url)}" class="w-full h-full object-cover opacity-80">`
               : `<div class="w-full h-full flex items-center justify-center"><i class="fas fa-building fa-3x" style="color:var(--primary);opacity:.3;"></i></div>`
             }
             <div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
-            <h4 class="absolute bottom-3 left-4 text-white font-bold text-lg drop-shadow">${d.name}</h4>
+            <h4 class="absolute bottom-3 left-4 text-white font-bold text-lg drop-shadow">${esc(d.name)}</h4>
           </div>
           <!-- Dept Body -->
           <div class="p-4">
-            <p class="text-sm text-muted mb-4 line-clamp-2">${d.description || 'No description'}</p>
-            <!-- Course Stats -->
+            <p class="text-sm text-muted mb-4 line-clamp-2">${esc(d.description || 'No description')}</p>
+            <!-- Stats -->
             <div class="flex gap-3 mb-4">
               <div class="text-center flex-1 bg-slate-50 rounded-lg py-2">
                 <div class="font-bold text-lg">${totalCount}</div>
-                <div class="text-[10px] text-muted uppercase tracking-wide">Courses</div>
+                <div class="text-[10px] text-muted uppercase tracking-wide">Programs</div>
               </div>
-              <div class="text-center flex-1 bg-green-50 rounded-lg py-2">
-                <div class="font-bold text-lg text-success">${publishedCount}</div>
-                <div class="text-[10px] text-muted uppercase tracking-wide">Published</div>
-              </div>
-              ${pendingCount > 0 ? `
-              <div class="text-center flex-1 bg-amber-50 rounded-lg py-2">
-                <div class="font-bold text-lg text-warning">${pendingCount}</div>
-                <div class="text-[10px] text-muted uppercase tracking-wide">Pending</div>
-              </div>` : ''}
             </div>
             <!-- Actions -->
             <div class="flex gap-2">
-              <button class="btn btn-primary btn-sm flex-1" onclick="openDeptCourses('${d.id}', '${d.name.replace(/'/g, "&apos;")}')"><i class="fas fa-book mr-1"></i>Manage Courses</button>
+              <button class="btn btn-primary btn-sm flex-1" onclick="openDeptPrograms('${d.id}', '${esc(d.name.replace(/\\/g, '\\\\').replace(/'/g, "\\'"))}')"><i class="fas fa-project-diagram mr-1"></i>Manage Programs</button>
               <button class="btn btn-outline btn-sm" onclick="editDept('${d.id}')"><i class="fas fa-edit"></i></button>
               <button class="btn btn-outline btn-sm text-danger" onclick="deleteDept('${d.id}')"><i class="fas fa-trash"></i></button>
             </div>
           </div>`;
         list.appendChild(card);
       });
-
-      // Populate department select in course modal
-      const sel = document.getElementById('courseDeptId');
-      if (sel) sel.innerHTML = allDepts.map(d => `<option value="${d.id}">${d.name}</option>`).join('');
     }
 
     async function loadReviewQueue() {
       const [{ data: materials }, { data: courses }, { data: published }] = await Promise.all([
-        supabase.from('materials').select('*, author:profiles!materials_uploaded_by_fkey(name), courses(name)').eq('status', 'pending_review'),
-        supabase.from('courses').select('*, departments(name)').eq('status', 'pending_review').order('created_at', { ascending: false }),
-        supabase.from('materials').select('*, courses(name, departments(name))').eq('status', 'published').order('created_at', { ascending: false }).limit(50)
+        supabase.from('materials').select('*, author:profiles!materials_uploaded_by_fkey(name), courses(name, programs(name, departments(name)))').eq('status', 'pending_review'),
+        supabase.from('courses').select('*, programs(name, departments(name))').eq('status', 'pending_review').order('created_at', { ascending: false }),
+        supabase.from('materials').select('*, courses(name, programs(name, departments(name)))').eq('status', 'published').order('created_at', { ascending: false }).limit(50)
       ]);
 
-      // ── Courses table ──
+      // â”€â”€ Courses table â”€â”€
       const cTbody = document.getElementById('reviewCoursesTable');
       const cCount = courses?.length || 0;
       document.getElementById('coursePendingCount').textContent = cCount;
       cTbody.innerHTML = '';
       if (!cCount) {
-        cTbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted p-6">✅ No pending courses</td></tr>';
+        cTbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted p-6">âœ… No pending courses</td></tr>';
       } else {
         courses.forEach(c => {
           const tr = document.createElement('tr');
           tr.innerHTML = `
-            <td class="font-medium">${c.name}</td>
-            <td><span class="role-badge academic">${c.departments?.name || 'N/A'}</span></td>
+            <td class="font-medium">${esc(c.name)}</td>
+            <td><span class="role-badge academic">${esc(c.programs?.departments?.name || 'N/A')} - ${esc(c.programs?.name || 'N/A')}</span></td>
             <td class="text-xs text-muted">${new Date(c.created_at).toLocaleDateString()}</td>
             <td>
               <div class="flex gap-2">
@@ -680,21 +708,21 @@
         });
       }
 
-      // ── Materials table ──
+      // â”€â”€ Materials table â”€â”€
       const mTbody = document.getElementById('reviewTable');
       const mCount = materials?.length || 0;
       document.getElementById('matPendingCount').textContent = mCount;
       mTbody.innerHTML = '';
       if (!mCount) {
-        mTbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted p-6">✅ No pending materials</td></tr>';
+        mTbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted p-6">âœ… No pending materials</td></tr>';
       } else {
         (materials || []).forEach(m => {
           const tr = document.createElement('tr');
           tr.innerHTML = `
-            <td>${m.title}</td>
-            <td><span class="badge">${m.type}</span></td>
-            <td>${m.author?.name || 'N/A'}</td>
-            <td>${m.courses?.name || 'N/A'}</td>
+            <td>${esc(m.title)}</td>
+            <td><span class="badge">${esc(m.type)}</span></td>
+            <td>${esc(m.author?.name || 'N/A')}</td>
+            <td>${esc(m.courses?.name || 'N/A')}</td>
             <td class="flex gap-2">
               <button class="btn btn-outline btn-sm" onclick="previewMaterial('${m.id}')"><i class="fas fa-eye"></i></button>
               <button class="btn btn-primary btn-sm" onclick="approveContent('${m.id}')"><i class="fas fa-check"></i> Publish</button>
@@ -719,10 +747,10 @@
         mats.forEach(m => {
           const tr = document.createElement('tr');
           tr.innerHTML = `
-            <td>${m.title}</td>
-            <td><span class="badge">${m.type}</span></td>
-            <td class="text-xs">${m.courses?.name || '—'}</td>
-            <td class="text-xs">${m.courses?.departments?.name || '—'}</td>
+            <td>${esc(m.title)}</td>
+            <td><span class="badge">${esc(m.type)}</span></td>
+            <td class="text-xs">${esc(m.courses?.name || 'â€”')}</td>
+            <td class="text-xs">${esc(m.courses?.programs?.departments?.name || 'â€”')}</td>
             <td><span class="status-badge published">Published</span></td>
             <td>
               <div class="flex gap-2">
@@ -753,13 +781,13 @@
 
       container.innerHTML = '';
       if (m.type === 'pdf') {
-        container.innerHTML = `<iframe src="${m.content_url}" class="w-full h-full border-none"></iframe>`;
+        container.innerHTML = `<iframe src="${esc(m.content_url)}" class="w-full h-full border-none"></iframe>`;
       } else if (m.type === 'video') {
-        container.innerHTML = `<video src="${m.content_url}" controls class="max-h-full max-w-full"></video>`;
+        container.innerHTML = `<video src="${esc(m.content_url)}" controls class="max-h-full max-w-full"></video>`;
       } else if (m.type === 'image') {
-        container.innerHTML = `<img src="${m.content_url}" class="max-h-full max-w-full object-contain">`;
+        container.innerHTML = `<img src="${esc(m.content_url)}" class="max-h-full max-w-full object-contain">`;
       } else {
-        container.innerHTML = `<div class="text-white text-center"><i class="fas fa-file-alt fa-3x mb-4"></i><p>Preview not available for this type</p><a href="${m.content_url}" target="_blank" class="text-primary underline">Download File</a></div>`;
+        container.innerHTML = `<div class="text-white text-center"><i class="fas fa-file-alt fa-3x mb-4"></i><p>Preview not available for this type</p><a href="${esc(m.content_url)}" target="_blank" class="text-primary underline">Download File</a></div>`;
       }
 
       actions.innerHTML = `
@@ -771,82 +799,63 @@
     }
 
     /* UPLOAD LOGIC */
-    async function uploadFile(file) {
-      const ext = file.name.split('.').pop();
-      const path = `${Date.now()}.${ext}`;
-      const { data, error } = await supabase.storage.from('media').upload(path, file);
-      if (error) throw error;
-      const { data: { publicUrl } } = supabase.storage.from('media').getPublicUrl(path);
-      return publicUrl;
-    }
+    // uploadFile is now imported from supabase.js
 
-    /* DEPT COURSES DRILL-DOWN */
-    window.openDeptCourses = async (deptId, deptName) => {
+    /* DEPT PROGRAMS DRILL-DOWN */
+    window.openDeptPrograms = async (deptId, deptName) => {
       activeDeptId = deptId;
-      // Switch view to deptCoursesSection
       document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
       document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-      document.getElementById('deptCoursesSection').classList.add('active');
-      document.getElementById('deptCoursesTitle').textContent = deptName;
-      document.getElementById('deptCoursesSubtitle').textContent = `Managing courses under: ${deptName}`;
-      document.getElementById('viewTitle').textContent = deptName + ' — Courses';
+      document.getElementById('deptProgramsSection').classList.add('active');
+      document.getElementById('deptProgramsTitle').textContent = deptName;
+      document.getElementById('deptProgramsSubtitle').textContent = `Programs under: ${deptName}`;
+      document.getElementById('viewTitle').textContent = deptName + ' â€” Programs';
 
-      // Wire up "Add Course" button to this dept
-      document.getElementById('addCourseForDeptBtn').onclick = () => {
-        document.getElementById('courseEditId').value = '';
-        document.getElementById('courseDeptId').value = deptId;
-        document.getElementById('courseName').value = '';
-        document.getElementById('courseDesc').value = '';
-        document.getElementById('courseImage').value = '';
-        document.getElementById('courseFile').value = '';
-        openModal('courseModal');
+      document.getElementById('addProgramBtn').onclick = () => {
+        document.getElementById('programEditId').value = '';
+        document.getElementById('programDeptId').value = deptId;
+        document.getElementById('programName').value = '';
+        document.getElementById('programDesc').value = '';
+        document.getElementById('programImage').value = '';
+        document.getElementById('programFile').value = '';
+        openModal('programModal');
       };
 
-      await renderDeptCourses(deptId);
+      await renderDeptPrograms(deptId);
     }
 
-    async function renderDeptCourses(deptId) {
-      const { data: courses } = await supabase
-        .from('courses')
-        .select('*')
-        .eq('department_id', deptId)
-        .order('created_at', { ascending: false });
-
-      allCourses = courses || [];
-      const list = document.getElementById('deptCourseList');
+    async function renderDeptPrograms(deptId) {
+      const { data: programs } = await supabase.from('programs').select('*').eq('department_id', deptId).order('created_at', { ascending: false });
+      const { data: counts } = await supabase.from('courses').select('program_id, status');
+      
+      allPrograms = programs || [];
+      const list = document.getElementById('deptProgramList');
       list.innerHTML = '';
 
-      if (!courses?.length) {
-        list.innerHTML = `
-          <div class="col-span-3 text-center py-16 text-muted">
-            <i class="fas fa-book-open fa-3x mb-4 opacity-30"></i>
-            <p class="text-lg">No courses in this department yet.</p>
-            <p class="text-sm mt-2">Click "Add Course" to create the first one.</p>
-          </div>`;
+      if (!programs?.length) {
+        list.innerHTML = `<div class="col-span-3 text-center py-16 text-muted"><p>No programs found.</p></div>`;
         return;
       }
 
-      const statusLabel = { published: 'Published', pending_review: 'Pending Review', draft: 'Draft', rejected: 'Rejected' };
-      courses.forEach(c => {
+      programs.forEach(p => {
+        const progCourses = (counts || []).filter(c => c.program_id === p.id);
+        const totalCount = progCourses.length;
+
         const card = document.createElement('div');
-        card.className = 'glass-card overflow-hidden p-0';
+        card.className = 'glass-card overflow-hidden p-0 transition-all hover:-translate-y-1 hover:shadow-xl';
         card.innerHTML = `
-          <div class="course-img-wrap">
-            ${c.image_url
-              ? `<img src="${c.image_url}" alt="${c.name}">`
-              : `<i class="fas fa-book fa-3x" style="color:#cbd5e1;"></i>`
-            }
+          <div class="relative h-24 bg-slate-100 overflow-hidden">
+            ${p.image_url ? `<img src="${esc(p.image_url)}" class="w-full h-full object-cover">` : ''}
+            <div class="absolute inset-0 bg-black/40"></div>
+            <h4 class="absolute bottom-2 left-3 text-white font-bold drop-shadow">${esc(p.name)}</h4>
           </div>
           <div class="p-4">
-            <div class="flex justify-between items-start mb-1">
-              <h4 class="font-bold">${c.name}</h4>
-              <span class="status-badge ${c.status === 'published' ? 'approved' : c.status === 'pending_review' ? 'pending' : c.status}">${statusLabel[c.status] || c.status}</span>
-            </div>
-            <p class="text-xs text-muted mb-4 line-clamp-2">${c.description || 'No description'}</p>
+            <p class="text-xs text-muted mb-4 line-clamp-2">${esc(p.description || 'No description')}</p>
+            <div class="mb-4 text-sm font-bold">${totalCount} Courses</div>
             <div class="flex gap-2">
-              <button class="btn btn-primary btn-sm flex-1" onclick="openAddAdminMaterial('${c.id}', '${c.name.replace(/'/g, "&apos;")}')"><i class="fas fa-plus mr-1"></i>Add Material</button>
-              <button class="btn btn-outline btn-sm" onclick="editCourse('${c.id}')"><i class="fas fa-edit"></i></button>
-              <button class="btn btn-outline btn-sm text-danger" onclick="deleteCourse('${c.id}')"><i class="fas fa-trash"></i></button>
+              <button class="btn btn-primary btn-sm flex-1" onclick="openProgramCourses('${p.id}', '${esc(p.name.replace(/\\/g, '\\\\').replace(/'/g, "\\'"))}')"><i class="fas fa-book mr-1"></i>Courses</button>
+              <button class="btn btn-outline btn-sm" onclick="editProgram('${p.id}')"><i class="fas fa-edit"></i></button>
+              <button class="btn btn-outline btn-sm text-danger" onclick="deleteProgram('${p.id}')"><i class="fas fa-trash"></i></button>
             </div>
           </div>`;
         list.appendChild(card);
@@ -857,12 +866,67 @@
       activeDeptId = null;
       document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
       document.getElementById('deptsSection').classList.add('active');
-      document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-      document.querySelector('.nav-link[data-view="depts"]').classList.add('active');
       document.getElementById('viewTitle').textContent = 'Departments';
     }
 
-    /* ADMIN — ADD MATERIAL TO COURSE */
+    window.openProgramCourses = async (programId, programName) => {
+      activeProgramId = programId;
+      document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+      document.getElementById('programCoursesSection').classList.add('active');
+      document.getElementById('programCoursesTitle').textContent = programName;
+      document.getElementById('viewTitle').textContent = programName + ' â€” Courses';
+
+      document.getElementById('addCourseForProgramBtn').onclick = () => {
+        document.getElementById('courseEditId').value = '';
+        document.getElementById('courseProgramId').value = programId;
+        document.getElementById('courseName').value = '';
+        document.getElementById('courseDesc').value = '';
+        document.getElementById('courseImage').value = '';
+        document.getElementById('courseFile').value = '';
+        openModal('courseModal');
+      };
+
+      await renderProgramCourses(programId);
+    }
+
+    async function renderProgramCourses(programId) {
+      const { data: courses } = await supabase.from('courses').select('*').eq('program_id', programId).order('created_at', { ascending: false });
+      allCourses = courses || [];
+      const list = document.getElementById('programCourseList');
+      list.innerHTML = '';
+      if (!courses?.length) {
+        list.innerHTML = `<div class="col-span-3 text-center py-16 text-muted"><p>No courses found.</p></div>`;
+        return;
+      }
+      const statusLabel = { published: 'Published', pending_review: 'Pending Review', draft: 'Draft', rejected: 'Rejected' };
+      courses.forEach(c => {
+        const card = document.createElement('div');
+        card.className = 'glass-card overflow-hidden p-0';
+        card.innerHTML = `
+          <div class="course-img-wrap h-24">
+            ${c.image_url ? `<img src="${esc(c.image_url)}" class="w-full h-full object-cover">` : `<div class="w-full h-full bg-slate-200"></div>`}
+          </div>
+          <div class="p-4">
+            <h4 class="font-bold">${esc(c.name)}</h4>
+            <span class="status-badge ${c.status === 'published' ? 'approved' : 'pending'}">${esc(statusLabel[c.status] || c.status)}</span>
+            <div class="flex gap-2 mt-4">
+              <button class="btn btn-primary btn-sm flex-1" onclick="openAddAdminMaterial('${c.id}', '${esc(c.name.replace(/\\/g, '\\\\').replace(/'/g, "\\'"))}')">Materials</button>
+              <button class="btn btn-outline btn-sm" onclick="editCourse('${c.id}')"><i class="fas fa-edit"></i></button>
+              <button class="btn btn-outline btn-sm text-danger" onclick="deleteCourse('${c.id}')"><i class="fas fa-trash"></i></button>
+            </div>
+          </div>`;
+        list.appendChild(card);
+      });
+    }
+
+    window.backToPrograms = () => {
+      activeProgramId = null;
+      document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+      document.getElementById('deptProgramsSection').classList.add('active');
+      document.getElementById('viewTitle').textContent = document.getElementById('deptProgramsTitle').textContent;
+    }
+
+    /* ADMIN â€” ADD MATERIAL TO COURSE */
     window.openAddAdminMaterial = (courseId, courseName) => {
       document.getElementById('adminMatCourseId').value = courseId;
       document.getElementById('adminMatCourseLabel').textContent = `Course: ${courseName}`;
@@ -893,10 +957,10 @@
           type,
           content_url: url,
           uploaded_by: myId,
-          status: 'published'   // Admin materials are trusted → published immediately
+          status: 'published'   // Admin materials are trusted â†’ published immediately
         });
         if (error) throw error;
-        ui.toast('✅ Material added!'); closeModal('adminMatModal');
+        ui.toast('âœ… Material added!'); closeModal('adminMatModal');
         if (activeDeptId) await renderDeptCourses(activeDeptId);
       } catch(e) { ui.toast(e.message, 'error'); }
       ui.setLoading(btn, false, 'Add Material');
@@ -912,10 +976,17 @@
       openModal('deptModal');
     }
     window.deleteDept = async (id) => {
-      if (!confirm('Are you sure you want to delete this department and all its data?')) return;
+      // Count dependent data before showing warning
+      const [{ count: pCount }, { count: uCount }] = await Promise.all([
+        supabase.from('programs').select('*', { count: 'exact', head: true }).eq('department_id', id),
+        supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('department_id', id)
+      ]);
+      const warning = `WARNING: Deleting this department will permanently remove:\n- ${pCount || 0} program(s) and all their courses & materials\n- ${uCount || 0} linked user profile(s)\n\nThis action CANNOT be undone. Type "DELETE" to confirm:`;
+      const typed = prompt(warning);
+      if (typed !== 'DELETE') { ui.toast('Cancelled. Nothing was deleted.', 'warning'); return; }
       const { error } = await supabase.from('departments').delete().eq('id', id);
       if (error) ui.toast(error.message, 'error');
-      else { ui.toast('Department deleted'); refreshData(); }
+      else { ui.toast('Department deleted permanently.'); refreshData(); }
     }
 
     window.editCourse = (id) => {
@@ -954,7 +1025,7 @@
         status: 'published'
       }).eq('id', id);
       if (error) ui.toast(error.message, 'error');
-      else { ui.toast('✅ Material published!'); refreshData(); }
+      else { ui.toast('âœ… Material published!'); refreshData(); }
     }
     window.rejectContent = async (id) => {
       const reason = prompt('Reason for rejection (optional):');
@@ -965,7 +1036,7 @@
     window.approveCourse = async (id) => {
       const { error } = await supabase.from('courses').update({ status: 'published' }).eq('id', id);
       if (error) ui.toast(error.message, 'error');
-      else { ui.toast('✅ Course published!'); closeModal('courseReviewModal'); refreshData(); }
+      else { ui.toast('âœ… Course published!'); closeModal('courseReviewModal'); refreshData(); }
     }
     window.rejectCourse = async (id) => {
       const { error } = await supabase.from('courses').update({ status: 'rejected' }).eq('id', id);
@@ -998,7 +1069,7 @@
       // Course image
       const imgEl = document.getElementById('crImage');
       imgEl.innerHTML = c.image_url
-        ? `<img src="${c.image_url}" class="w-full h-full object-cover">`
+        ? `<img src="${esc(c.image_url)}" class="w-full h-full object-cover">`
         : `<i class="fas fa-book fa-3x text-slate-300"></i>`;
 
       // Materials list
@@ -1015,18 +1086,18 @@
           const icon = typeIcons[m.type] || 'fa-file text-slate-400';
           const statusColor = m.status === 'published' ? 'approved' : m.status === 'rejected' ? 'rejected' : 'pending';
           const previewHtml = (m.type === 'video' && m.content_url.includes('youtube'))
-            ? `<a href="${m.content_url}" target="_blank" class="btn btn-outline btn-sm ml-auto"><i class="fas fa-play mr-1"></i>Watch</a>`
+            ? `<a href="${esc(m.content_url)}" target="_blank" class="btn btn-outline btn-sm ml-auto"><i class="fas fa-play mr-1"></i>Watch</a>`
             : (m.type === 'pdf')
-            ? `<a href="${m.content_url}" target="_blank" class="btn btn-outline btn-sm ml-auto"><i class="fas fa-external-link-alt mr-1"></i>Open PDF</a>`
-            : `<a href="${m.content_url}" target="_blank" class="btn btn-outline btn-sm ml-auto"><i class="fas fa-download mr-1"></i>Download</a>`;
+            ? `<a href="${esc(m.content_url)}" target="_blank" class="btn btn-outline btn-sm ml-auto"><i class="fas fa-external-link-alt mr-1"></i>Open PDF</a>`
+            : `<a href="${esc(m.content_url)}" target="_blank" class="btn btn-outline btn-sm ml-auto"><i class="fas fa-download mr-1"></i>Download</a>`;
           return `
             <div class="flex items-center gap-4 p-4 bg-slate-50 rounded-xl border">
               <i class="fas ${icon} fa-lg w-6 text-center"></i>
               <div class="flex-1">
-                <div class="font-medium">${m.title}</div>
-                <div class="text-xs text-muted capitalize">${m.type}</div>
+                <div class="font-medium">${esc(m.title)}</div>
+                <div class="text-xs text-muted capitalize">${esc(m.type)}</div>
               </div>
-              <span class="status-badge ${statusColor}">${m.status.replace('_',' ')}</span>
+              <span class="status-badge ${statusColor}">${esc(m.status.replace('_',' '))}</span>
               ${previewHtml}
             </div>`;
         }).join('');
@@ -1080,11 +1151,56 @@
       ui.setLoading(btn, false, 'Save');
     }
 
+    window.editProgram = (id) => {
+      const p = allPrograms.find(x => x.id === id);
+      if (!p) return;
+      document.getElementById('programEditId').value = p.id;
+      document.getElementById('programDeptId').value = p.department_id;
+      document.getElementById('programName').value = p.name;
+      document.getElementById('programDesc').value = p.description || '';
+      document.getElementById('programImage').value = p.image_url || '';
+      openModal('programModal');
+    }
+
+    window.deleteProgram = async (id) => {
+      if (!confirm('Delete this program?')) return;
+      const { error } = await supabase.from('programs').delete().eq('id', id);
+      if (error) ui.toast(error.message, 'error');
+      else { ui.toast('Program deleted'); renderDeptPrograms(activeDeptId); }
+    }
+
+    document.getElementById('saveProgramBtn').onclick = async () => {
+      const btn = document.getElementById('saveProgramBtn');
+      ui.setLoading(btn, true);
+      try {
+        const department_id = document.getElementById('programDeptId').value;
+        const name = document.getElementById('programName').value.trim();
+        if (!name) throw new Error('Program name required');
+        const desc = document.getElementById('programDesc').value;
+        let img = document.getElementById('programImage').value;
+        const editId = document.getElementById('programEditId').value;
+        const file = document.getElementById('programFile').files[0];
+        if (file) img = await uploadFile(file);
+
+        const payload = { department_id, name, description: desc, image_url: img || null };
+        let error;
+        if (editId) {
+          ({ error } = await supabase.from('programs').update(payload).eq('id', editId));
+        } else {
+          ({ error } = await supabase.from('programs').insert(payload));
+        }
+        if (error) throw error;
+        ui.toast('Program saved!'); closeModal('programModal');
+        await renderDeptPrograms(activeDeptId);
+      } catch (e) { ui.toast(e.message, 'error'); }
+      ui.setLoading(btn, false, 'Save');
+    }
+
     document.getElementById('saveCourseBtn').onclick = async () => {
       const btn = document.getElementById('saveCourseBtn');
       ui.setLoading(btn, true);
       try {
-        const dept_id = document.getElementById('courseDeptId').value;
+        const program_id = document.getElementById('courseProgramId').value;
         const name = document.getElementById('courseName').value.trim();
         if (!name) throw new Error('Course name is required');
         const desc = document.getElementById('courseDesc').value;
@@ -1094,7 +1210,7 @@
         const file = document.getElementById('courseFile').files[0];
         if (file) img = await uploadFile(file);
 
-        const payload = { department_id: dept_id, name, description: desc, image_url: img || null, status: 'published' };
+        const payload = { program_id, name, description: desc, image_url: img || null, status: 'published' };
         let error;
         if (editId) {
           ({ error } = await supabase.from('courses').update(payload).eq('id', editId));
@@ -1103,8 +1219,8 @@
         }
         if (error) throw error;
         ui.toast('Course saved!'); closeModal('courseModal');
-        // If we're inside a department drill-down, refresh that view
-        if (activeDeptId) await renderDeptCourses(activeDeptId);
+        // If we're inside a program drill-down, refresh that view
+        if (activeProgramId) await renderProgramCourses(activeProgramId);
         else await refreshData();
       } catch (e) { ui.toast(e.message, 'error'); }
       ui.setLoading(btn, false, 'Save');
@@ -1119,13 +1235,25 @@
           link.classList.add('active');
           document.getElementById(link.dataset.view + 'Section').classList.add('active');
           document.getElementById('viewTitle').textContent = link.querySelector('span').textContent;
+          const sidebar = document.getElementById('sidebar');
+          const overlay = document.getElementById('sidebarOverlay');
+          if(sidebar && sidebar.classList.contains('open')) {
+              sidebar.classList.remove('open');
+              if(overlay) overlay.classList.remove('open');
+          }
         };
       });
     }
     function setupMobileMenu() {
       const btn = document.getElementById('mobileMenuBtn');
       const sidebar = document.getElementById('sidebar');
-      if (btn && sidebar) btn.onclick = () => sidebar.classList.toggle('open');
+      const overlay = document.getElementById('sidebarOverlay');
+      if (btn && sidebar) {
+        btn.onclick = () => {
+          sidebar.classList.toggle('open');
+          if(overlay) overlay.classList.toggle('open');
+        };
+      }
     }
     function setupFilters() {
       const fn = () => {
@@ -1166,12 +1294,19 @@
     document.getElementById('logoutBtn').onclick = () => routing.logout();
     document.getElementById('langToggle').onclick = () => i18n.toggle();
 
+    let _refreshTimeout;
+    function debouncedRefresh() {
+      clearTimeout(_refreshTimeout);
+      _refreshTimeout = setTimeout(() => refreshData(), 500);
+    }
+
     function setupRealtime() {
       supabase.channel('admin_sync')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => refreshData())
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'departments' }, () => refreshData())
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'courses' }, () => refreshData())
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'materials' }, () => refreshData())
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => debouncedRefresh())
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'departments' }, () => debouncedRefresh())
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'programs' }, () => debouncedRefresh())
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'courses' }, () => debouncedRefresh())
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'materials' }, () => debouncedRefresh())
         .subscribe();
     }
 

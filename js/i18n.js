@@ -118,7 +118,12 @@ const dictionaries = {
         myResults: "My Results",
         notifications: "Notifications",
         announcements: "Announcements",
-        grading: "Grading"
+        grading: "Grading",
+        courses: "Courses",
+        materials: "Materials",
+        // Auth visual side headings
+        welcomeBackHeading: "Welcome Back",
+        joinNetwork: "Join the Network"
     },
     ar: {
         appName: "Maharat Academy",
@@ -231,7 +236,12 @@ const dictionaries = {
         myResults: "نتائجي",
         notifications: "الإشعارات",
         announcements: "الإعلانات",
-        grading: "التقييم"
+        grading: "التقييم",
+        courses: "الكورسات",
+        materials: "المواد",
+        // Auth visual side headings
+        welcomeBackHeading: "أهلاً بعودتك",
+        joinNetwork: "انضم إلى الشبكة"
     }
 };
 

@@ -2,6 +2,7 @@
 <html lang="en" dir="ltr" translate="no">
 <head>
     <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.groq.com; media-src 'self' blob: https:; frame-src blob: https://www.youtube.com;">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="google" content="notranslate">
     <title>Academic Dashboard - Maharat Academy</title>
@@ -30,6 +31,7 @@
 </head>
 <body class="bg-light">
 <div class="dashboard-layout">
+  <div id="sidebarOverlay" class="sidebar-overlay" onclick="document.getElementById('sidebar').classList.remove('open'); this.classList.remove('open')"></div>
 
   <!-- ======= SIDEBAR ======= -->
   <aside class="sidebar" id="sidebar">
@@ -91,7 +93,7 @@
         </div>
       </div>
       <div class="flex gap-4 items-center">
-        <button id="langToggle" class="btn btn-outline btn-sm" data-i18n="switchLang">العربية</button>
+        <button id="langToggle" class="btn btn-outline btn-sm" data-i18n="switchLang">Ø§Ù„Ø¹Ø±Ø¨ÙŠØ©</button>
         <div class="flex items-center gap-3">
           <div>
             <div id="academicName" class="font-bold">Academic Name</div>
@@ -125,18 +127,34 @@
           <div><div class="text-2xl font-bold" id="statMaterials">0</div><div class="text-sm text-muted">Total Materials</div></div>
         </div>
       </div>
-      <h3 class="font-bold mb-4">Department Courses</h3>
-      <div id="courseList" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
+      <h3 class="font-bold mb-4">Department Programs</h3>
+      <div id="programList" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
     </section>
 
-    <!-- COURSES (View Only — Admin creates courses) -->
+    <!-- COURSES (View Only â€” Admin creates courses) -->
     <section id="coursesSection" class="view-section">
       <div class="flex justify-between items-center mb-2">
-        <h2 class="text-xl font-bold">Department Courses</h2>
-        <span class="text-xs text-muted bg-slate-100 px-3 py-1 rounded-full"><i class="fas fa-info-circle mr-1"></i>Courses are created by Admin</span>
+        <h2 class="text-xl font-bold">Department Programs & Courses</h2>
+        <span class="text-xs text-muted bg-slate-100 px-3 py-1 rounded-full"><i class="fas fa-info-circle mr-1"></i>Programs & Courses are created by Admin</span>
       </div>
-      <p class="text-sm text-muted mb-6">You can upload materials and create exams for the courses listed below.</p>
-      <div id="manageCourseList" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
+      <p class="text-sm text-muted mb-6">Select a program to view its courses, upload materials and create exams.</p>
+      
+      <!-- PROGRAMS LIST -->
+      <div id="manageProgramList" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
+      
+      <!-- COURSES LIST (Drill-down) -->
+      <div id="manageCourseListContainer" style="display:none;">
+        <div class="flex items-center gap-4 mb-6">
+          <button class="btn btn-outline btn-sm" onclick="backToPrograms()">
+            <i class="fas fa-arrow-left mr-2"></i>Programs
+          </button>
+          <div>
+            <h3 class="text-lg font-bold" id="manageCourseListTitle">Program Courses</h3>
+            <p class="text-xs text-muted">Courses within this program</p>
+          </div>
+        </div>
+        <div id="manageCourseList" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
+      </div>
     </section>
 
     <!-- STUDENTS -->
@@ -246,7 +264,7 @@
 
     <!-- GRADING -->
     <section id="gradingSection" class="view-section">
-      <h2 class="text-xl font-bold mb-6">Grading — Pending Essay Results</h2>
+      <h2 class="text-xl font-bold mb-6">Grading â€” Pending Essay Results</h2>
       <div id="gradingList" class="flex flex-col gap-6"></div>
     </section>
 
@@ -280,9 +298,9 @@
         <div class="form-group mb-4">
           <label>Question Type</label>
           <select id="qType" class="form-input" onchange="toggleQuestionType()">
-            <option value="mcq">MCQ — Multiple Choice</option>
+            <option value="mcq">MCQ â€” Multiple Choice</option>
             <option value="boolean">True / False</option>
-            <option value="essay">Essay — Descriptive (Manual Grading)</option>
+            <option value="essay">Essay â€” Descriptive (Manual Grading)</option>
           </select>
         </div>
         <div class="form-group mb-4">
@@ -361,7 +379,7 @@
         <div class="modal" style="max-width:480px;">
             <button class="absolute top-4 right-4 text-muted" onclick="closeModal('uploadMaterialModal')"><i class="fas fa-times"></i></button>
             <h3 class="mb-6"><i class="fas fa-upload text-primary mr-2"></i>Upload Material</h3>
-            <p class="text-sm text-muted mb-4" id="uploadMatCourseLabel">Course: —</p>
+            <p class="text-sm text-muted mb-4" id="uploadMatCourseLabel">Course: â€”</p>
             <form id="materialForm">
                 <input type="hidden" id="uploadMatCourseId" required>
                 <div class="form-group mb-4">
@@ -421,8 +439,8 @@
 <script type="module">
 import i18n from '../js/i18n.js';
 import { routing } from '../js/services/routing.js';
-import { supabase } from '../js/services/supabase.js';
-import { ui } from '../js/services/ui.js';
+import { supabase, uploadFile } from '../js/services/supabase.js';
+import { ui, esc } from '../js/services/ui.js';
 
 let myDeptId = null, myId = null, myCourses = [], currentExamId = null;
 
@@ -458,7 +476,7 @@ async function refreshData() {
 async function loadStats() {
     const { count: pending } = await supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'student').eq('status', 'pending').eq('department_id', myDeptId);
     const { count: students } = await supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'student').eq('status', 'approved').eq('department_id', myDeptId);
-    const { count: courses } = await supabase.from('courses').select('*', { count: 'exact', head: true }).eq('department_id', myDeptId);
+    const { count: courses } = await supabase.from('courses').select('*, programs!inner(department_id)', { count: 'exact', head: true }).eq('programs.department_id', myDeptId);
     
     document.getElementById('statPendingStudents').textContent = pending || 0;
     document.getElementById('statStudents').textContent = students || 0;
@@ -466,19 +484,19 @@ async function loadStats() {
 }
 
 async function loadMyMaterials() {
-    const { data } = await supabase.from('materials').select('*, courses(name)').eq('uploaded_by', myId).order('created_at', { ascending: false });
+    const { data } = await supabase.from('materials').select('*, courses(name, programs(name))').eq('uploaded_by', myId).order('created_at', { ascending: false });
     const tbody = document.getElementById('myMaterialsTable');
     tbody.innerHTML = '';
     (data || []).forEach(m => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td>${m.title}</td>
-            <td><span class="badge">${m.type}</span></td>
-            <td>${m.courses?.name || 'N/A'}</td>
-            <td><span class="status-badge ${m.status}">${m.status}</span></td>
+            <td>${esc(m.title)}</td>
+            <td><span class="badge">${esc(m.type)}</span></td>
+            <td>${esc(m.courses?.name || 'N/A')}<br><small class="text-muted">${esc(m.courses?.programs?.name || '')}</small></td>
+            <td><span class="status-badge ${esc(m.status)}">${esc(m.status)}</span></td>
             <td>
                 <div class="flex gap-2">
-                    <a href="${m.content_url}" target="_blank" class="btn btn-outline btn-sm"><i class="fas fa-eye"></i></a>
+                    <a href="${esc(m.content_url)}" target="_blank" class="btn btn-outline btn-sm"><i class="fas fa-eye"></i></a>
                     <button class="btn btn-outline btn-sm" onclick="editMaterial('${m.id}')"><i class="fas fa-edit"></i></button>
                     <button class="btn btn-outline btn-sm text-danger" onclick="deleteMaterial('${m.id}')"><i class="fas fa-trash"></i></button>
                 </div>
@@ -494,13 +512,13 @@ async function loadStudents() {
     (data || []).forEach(s => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td>${s.name}</td>
+            <td>${esc(s.name)}</td>
             <td class="text-xs text-muted">${s.id.substring(0,8)}...</td>
-            <td><span class="status-badge ${s.status}">${s.status}</span></td>
+            <td><span class="status-badge ${esc(s.status)}">${esc(s.status)}</span></td>
             <td class="text-xs">${new Date(s.created_at).toLocaleDateString()}</td>
             <td>
                 <div class="flex gap-2">
-                    <button class="btn btn-outline btn-sm" onclick="viewStudentResults('${s.id}', '${s.name}')">
+                    <button class="btn btn-outline btn-sm" onclick="viewStudentResults('${s.id}', '${esc(s.name.replace(/\\/g, '\\\\').replace(/'/g, "\\'"))}')">
                         <i class="fas fa-poll mr-1"></i> Results
                     </button>
                     ${s.status === 'pending' ? `<button class="btn btn-primary btn-sm" onclick="approveStudent('${s.id}')">Approve</button>` : ''}
@@ -510,63 +528,115 @@ async function loadStudents() {
     });
 }
 
+let myPrograms = [];
+
 async function loadCourses() {
-    const { data } = await supabase.from('courses').select('*').eq('department_id', myDeptId).order('name');
-    myCourses = data || [];
-    // Overview list (published only for display)
-    const list = document.getElementById('courseList');
+    const { data: programs } = await supabase.from('programs').select('*').eq('department_id', myDeptId).order('name');
+    myPrograms = programs || [];
+    
+    const { data: courses } = await supabase.from('courses').select('*, programs!inner(department_id)').eq('programs.department_id', myDeptId).order('name');
+    myCourses = courses || [];
+
+    // Overview list (programs)
+    const progList = document.getElementById('programList');
+    const manageProgList = document.getElementById('manageProgramList');
     const examList = document.getElementById('examCourseList');
-    const manageList = document.getElementById('manageCourseList');
 
-    list.innerHTML = '';
+    if (progList) progList.innerHTML = '';
+    if (manageProgList) manageProgList.innerHTML = '';
     if (examList) examList.innerHTML = '<h3 class="mb-4">Select Course</h3>';
-    if (manageList) manageList.innerHTML = '';
 
-    myCourses.forEach(c => {
-        // Overview card (published only)
-        if (c.status === 'published') {
-          const card = document.createElement('div');
-          card.className = 'glass-card overflow-hidden p-0';
-          card.innerHTML = `
-              <div class="course-img-wrap">
-                ${c.image_url ? `<img src="${c.image_url}">` : `<i class="fas fa-book fa-3x" style="color:#cbd5e1;"></i>`}
-              </div>
-              <div class="p-4">
-                <h4 class="font-bold mb-1">${c.name}</h4>
-                <p class="text-xs text-muted">${c.description || ''}</p>
-              </div>`;
-          list.appendChild(card);
-        }
+    myPrograms.forEach(p => {
+        // Overview card
+        const card = document.createElement('div');
+        card.className = 'glass-card overflow-hidden p-0';
+        card.innerHTML = `
+            <div class="course-img-wrap">
+              ${p.image_url ? `<img src="${esc(p.image_url)}">` : `<i class="fas fa-project-diagram fa-3x" style="color:#cbd5e1;"></i>`}
+            </div>
+            <div class="p-4">
+              <h4 class="font-bold mb-1">${esc(p.name)}</h4>
+              <p class="text-xs text-muted">${esc(p.description || '')}</p>
+            </div>`;
+        if (progList) progList.appendChild(card);
 
-        // Manage list (all statuses)
-        if (manageList) {
-          const statusLabel = { published: 'Published', pending_review: 'Pending Review', draft: 'Draft', rejected: 'Rejected' };
+        // Manage list card
+        if (manageProgList) {
           const mc = document.createElement('div');
-          mc.className = 'glass-card overflow-hidden p-0';
+          mc.className = 'glass-card overflow-hidden p-0 cursor-pointer transition-all hover:shadow-lg hover:-translate-y-1';
+          mc.onclick = () => openProgramCourses(p.id, p.name);
           mc.innerHTML = `
               <div class="course-img-wrap">
-                ${c.image_url ? `<img src="${c.image_url}">` : `<i class="fas fa-book fa-3x" style="color:#cbd5e1;"></i>`}
+                ${p.image_url ? `<img src="${esc(p.image_url)}">` : `<i class="fas fa-project-diagram fa-3x" style="color:#cbd5e1;"></i>`}
               </div>
               <div class="p-4">
-                <div class="flex justify-between items-start mb-1">
-                  <h4 class="font-bold">${c.name}</h4>
-                  <span class="status-badge ${c.status === 'published' ? 'approved' : c.status === 'pending_review' ? 'pending' : c.status}">${statusLabel[c.status] || c.status}</span>
-                </div>
-                <p class="text-xs text-muted mb-4 line-clamp-2">${c.description || ''}</p>
-                <button class="btn btn-primary w-full" onclick="openUploadMaterialModal('${c.id}', '${c.name.replace(/'/g, "&apos;")}')"><i class="fas fa-upload mr-2"></i>Upload Material</button>
+                <h4 class="font-bold mb-1">${esc(p.name)}</h4>
+                <p class="text-xs text-muted mb-4 line-clamp-2">${esc(p.description || '')}</p>
+                <div class="text-primary text-sm font-bold"><i class="fas fa-book mr-1"></i>View Courses</div>
               </div>`;
-          manageList.appendChild(mc);
-        }
-
-        // Exam editor list (Allow for pending courses so academic can prepare everything)
-        if (examList) {
-          const exBtn = document.createElement('button');
-          exBtn.className = 'btn btn-outline w-full mb-2 text-left';
-          exBtn.textContent = c.name;
-          exBtn.onclick = () => openExamEditor(c.id, c.name);
-          examList.appendChild(exBtn);
+          manageProgList.appendChild(mc);
         }
     });
+
+    // Populate Exams List Grouped by Program
+    if (examList) {
+        myPrograms.forEach(p => {
+            const pCourses = myCourses.filter(c => c.program_id === p.id);
+            if (pCourses.length === 0) return;
+            
+            const group = document.createElement('div');
+            group.className = 'mb-4';
+            group.innerHTML = `<div class="text-xs font-bold text-muted uppercase mb-2">${esc(p.name)}</div>`;
+            
+            pCourses.forEach(c => {
+                const exBtn = document.createElement('button');
+                exBtn.className = 'btn btn-outline w-full mb-2 text-left text-sm';
+                exBtn.textContent = c.name;
+                exBtn.onclick = () => openExamEditor(c.id, c.name);
+                group.appendChild(exBtn);
+            });
+            examList.appendChild(group);
+        });
+    }
+}
+
+window.openProgramCourses = (programId, programName) => {
+    document.getElementById('manageProgramList').style.display = 'none';
+    document.getElementById('manageCourseListContainer').style.display = 'block';
+    document.getElementById('manageCourseListTitle').textContent = programName + ' Courses';
+    
+    const manageList = document.getElementById('manageCourseList');
+    manageList.innerHTML = '';
+    
+    const pCourses = myCourses.filter(c => c.program_id === programId);
+    if (pCourses.length === 0) {
+        manageList.innerHTML = '<div class="col-span-3 text-center text-muted p-8">No courses available in this program.</div>';
+        return;
+    }
+    
+    const statusLabel = { published: 'Published', pending_review: 'Pending Review', draft: 'Draft', rejected: 'Rejected' };
+    pCourses.forEach(c => {
+        const mc = document.createElement('div');
+        mc.className = 'glass-card overflow-hidden p-0';
+        mc.innerHTML = `
+            <div class="course-img-wrap">
+              ${c.image_url ? `<img src="${esc(c.image_url)}">` : `<i class="fas fa-book fa-3x" style="color:#cbd5e1;"></i>`}
+            </div>
+            <div class="p-4">
+              <div class="flex justify-between items-start mb-1">
+                <h4 class="font-bold">${esc(c.name)}</h4>
+                <span class="status-badge ${c.status === 'published' ? 'approved' : c.status === 'pending_review' ? 'pending' : esc(c.status)}">${esc(statusLabel[c.status] || c.status)}</span>
+              </div>
+              <p class="text-xs text-muted mb-4 line-clamp-2">${esc(c.description || '')}</p>
+              <button class="btn btn-primary w-full" onclick="openUploadMaterialModal('${c.id}', '${esc(c.name.replace(/\\/g, '\\\\').replace(/'/g, "\\'"))}')"><i class="fas fa-upload mr-2"></i>Upload Material</button>
+            </div>`;
+        manageList.appendChild(mc);
+    });
+}
+
+window.backToPrograms = () => {
+    document.getElementById('manageCourseListContainer').style.display = 'none';
+    document.getElementById('manageProgramList').style.display = 'grid';
 }
 
 window.openUploadMaterialModal = (courseId, courseName) => {
@@ -578,15 +648,15 @@ window.openUploadMaterialModal = (courseId, courseName) => {
 }
 
 async function loadMaterials() {
-    const { data } = await supabase.from('materials').select('*, courses!inner(*)').eq('courses.department_id', myDeptId).order('created_at', {ascending:false});
+    const { data } = await supabase.from('materials').select('*, courses!inner(*, programs!inner(department_id))').eq('courses.programs.department_id', myDeptId).order('created_at', {ascending:false});
     const tbody = document.getElementById('materialTable');
     tbody.innerHTML = '';
     (data || []).forEach(m => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td class="text-sm font-medium">${m.title}</td>
-            <td class="text-xs">${m.courses.name}</td>
-            <td><span class="status-badge ${m.status}">${m.status.replace('_',' ')}</span></td>
+            <td class="text-sm font-medium">${esc(m.title)}</td>
+            <td class="text-xs">${esc(m.courses.name)}</td>
+            <td><span class="status-badge ${esc(m.status)}">${esc(m.status.replace('_',' '))}</span></td>
             <td><button class="btn btn-outline btn-sm text-danger" onclick="deleteMaterial('${m.id}')"><i class="fas fa-trash"></i></button></td>`;
         tbody.appendChild(tr);
     });
@@ -601,10 +671,10 @@ async function loadAnnouncements() {
         div.className = 'glass-card mb-4';
         div.innerHTML = `
             <div class="flex justify-between items-start mb-2">
-                <h4 class="font-bold">${a.title}</h4>
+                <h4 class="font-bold">${esc(a.title)}</h4>
                 <button class="text-danger" onclick="deleteAnnouncement('${a.id}')"><i class="fas fa-trash-alt"></i></button>
             </div>
-            <p class="text-sm text-muted">${a.body}</p>
+            <p class="text-sm text-muted">${esc(a.body)}</p>
             <div class="text-[10px] text-muted mt-4">${new Date(a.created_at).toLocaleString()}</div>`;
         list.appendChild(div);
     });
@@ -618,14 +688,7 @@ window.approveStudent = async (id) => {
 }
 
 /* UPLOAD LOGIC */
-async function uploadFile(file) {
-    const ext = file.name.split('.').pop();
-    const path = `materials/${Date.now()}.${ext}`;
-    const { data, error } = await supabase.storage.from('media').upload(path, file);
-    if (error) throw error;
-    const { data: { publicUrl } } = supabase.storage.from('media').getPublicUrl(path);
-    return publicUrl;
-}
+// uploadFile is now imported from supabase.js
 
 document.getElementById('materialForm').onsubmit = async (e) => {
     e.preventDefault();
@@ -647,7 +710,7 @@ document.getElementById('materialForm').onsubmit = async (e) => {
         });
         if (error) throw error;
         
-        ui.toast('✅ Submitted! Pending Admin review.');
+        ui.toast('âœ… Submitted! Pending Admin review.');
         e.target.reset();
         closeModal('uploadMaterialModal');
         refreshData();
@@ -704,6 +767,17 @@ document.getElementById('saveAnnBtn').onclick = async () => {
     if (error) ui.toast(error.message,'error');
     else { ui.toast('Posted!'); document.getElementById('annTitle').value=''; document.getElementById('annBody').value=''; refreshData(); }
 }
+
+window.deleteAnnouncement = async (id) => {
+    if (!confirm('Are you sure you want to delete this announcement?')) return;
+    const { error } = await supabase.from('announcements').delete().eq('id', id);
+    if (error) {
+        ui.toast(error.message, 'error');
+    } else {
+        ui.toast('Announcement deleted');
+        loadAnnouncements();
+    }
+};
 
 document.getElementById('saveDeptSettingsBtn').onclick = async () => {
     try {
@@ -768,7 +842,7 @@ window.publishExam = async () => {
     const { error } = await supabase.from('exams').update({ status: 'published' }).eq('id', currentExamId);
     if (error) ui.toast(error.message, 'error');
     else {
-        ui.toast('Exam published successfully! 🚀');
+        ui.toast('Exam published successfully! ðŸš€');
         const pubBtn = document.getElementById('publishExamBtn');
         pubBtn.innerHTML = '<i class="fas fa-check-circle mr-1"></i> Exam Published';
         pubBtn.classList.remove('btn-success');
@@ -783,13 +857,13 @@ async function loadQuestions() {
         let optionsHtml = '';
         if (q.type === 'mcq') {
             optionsHtml = `<div class="text-xs grid grid-cols-2 gap-1 mt-2">
-                <div class="${q.correct_answer==='a'?'text-success font-bold':''}">A: ${q.options.a}</div>
-                <div class="${q.correct_answer==='b'?'text-success font-bold':''}">B: ${q.options.b}</div>
-                <div class="${q.correct_answer==='c'?'text-success font-bold':''}">C: ${q.options.c}</div>
-                <div class="${q.correct_answer==='d'?'text-success font-bold':''}">D: ${q.options.d}</div>
+                <div class="${q.correct_answer==='a'?'text-success font-bold':''}">A: ${esc(q.options.a)}</div>
+                <div class="${q.correct_answer==='b'?'text-success font-bold':''}">B: ${esc(q.options.b)}</div>
+                <div class="${q.correct_answer==='c'?'text-success font-bold':''}">C: ${esc(q.options.c)}</div>
+                <div class="${q.correct_answer==='d'?'text-success font-bold':''}">D: ${esc(q.options.d)}</div>
             </div>`;
         } else if (q.type === 'boolean') {
-            optionsHtml = `<div class="text-xs mt-2 font-bold text-primary">Correct: ${q.correct_answer.toUpperCase()}</div>`;
+            optionsHtml = `<div class="text-xs mt-2 font-bold text-primary">Correct: ${esc(q.correct_answer.toUpperCase())}</div>`;
         } else {
             optionsHtml = `<div class="text-xs mt-2 text-muted italic">Essay/Descriptive (Manual Grading)</div>`;
         }
@@ -798,8 +872,8 @@ async function loadQuestions() {
         <div class="p-4 bg-white border border-slate-200 rounded-xl relative hover:shadow-md transition-all">
             <div class="flex justify-between items-start">
                 <div class="flex-1">
-                    <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-slate-100 text-slate-500 mb-2 inline-block">${q.type} (${q.points || 1} Pts)</span>
-                    <p class="font-bold text-slate-800">${i+1}. ${q.question}</p>
+                    <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-slate-100 text-slate-500 mb-2 inline-block">${esc(q.type)} (${q.points || 1} Pts)</span>
+                    <p class="font-bold text-slate-800">${i+1}. ${esc(q.question)}</p>
                     ${optionsHtml}
                 </div>
                 <div class="flex gap-2">
@@ -920,7 +994,11 @@ function setupNav() {
             document.getElementById(link.dataset.view + 'Section').classList.add('active');
             document.getElementById('viewTitle').textContent = link.querySelector('span').textContent.trim();
             const sidebar = document.getElementById('sidebar');
-            if(sidebar.classList.contains('open')) sidebar.classList.remove('open');
+            const overlay = document.getElementById('sidebarOverlay');
+            if(sidebar.classList.contains('open')) {
+                sidebar.classList.remove('open');
+                if(overlay) overlay.classList.remove('open');
+            }
         };
     });
 }
@@ -962,10 +1040,10 @@ async function loadSentNotifications() {
     div.className = 'glass-card mb-4';
     div.innerHTML = `
       <div class="flex justify-between items-start mb-2">
-        <h4 class="font-bold">${n.title}</h4>
+        <h4 class="font-bold">${esc(n.title)}</h4>
         <span class="text-[10px] text-muted">${new Date(n.created_at).toLocaleString()}</span>
       </div>
-      <p class="text-sm text-muted">${n.message}</p>`;
+      <p class="text-sm text-muted">${esc(n.message)}</p>`;
     list.appendChild(div);
   });
   if (!data?.length) list.innerHTML = '<p class="text-muted">No notifications sent yet.</p>';
@@ -989,7 +1067,7 @@ async function loadGrading() {
   list.innerHTML = '';
 
   if (!results?.length) {
-    list.innerHTML = '<div class="glass-card text-center text-muted p-10"><i class="fas fa-check-double fa-2x mb-4"></i><p>All results are graded! ✅</p></div>';
+    list.innerHTML = '<div class="glass-card text-center text-muted p-10"><i class="fas fa-check-double fa-2x mb-4"></i><p>All results are graded! âœ…</p></div>';
     return;
   }
 
@@ -1002,17 +1080,17 @@ async function loadGrading() {
     const oldEssayScores = r.essay_scores || {};
     
     let essayHtml = (questions || []).map(q => {
-      const studentAnswer = r.answers?.[q.id] || '<em class="text-muted">No answer provided</em>';
+      const studentAnswer = r.answers?.[q.id] ? esc(r.answers[q.id]) : '<em class="text-muted">No answer provided</em>';
       const qPoints = q.points || 1;
       const currentScore = oldEssayScores[q.id] !== undefined ? oldEssayScores[q.id] : '';
       return `
         <div class="p-4 border rounded mb-4 bg-white">
           <div class="flex justify-between items-start mb-2">
-            <p class="font-bold"><i class="fas fa-question-circle text-primary mr-2"></i>${q.question}</p>
+            <p class="font-bold"><i class="fas fa-question-circle text-primary mr-2"></i>${esc(q.question)}</p>
             <span class="badge" style="background:#f1f5f9;color:#64748b;">Out of ${qPoints} pts</span>
           </div>
           <div class="mb-3"><span class="text-xs font-bold text-muted uppercase">Student Answer:</span><p class="text-sm mt-1 p-3 bg-slate-50 rounded">${studentAnswer}</p></div>
-          ${q.model_answer ? `<div class="mb-3"><span class="text-xs font-bold text-muted uppercase">Model Answer:</span><p class="text-sm mt-1 p-3 bg-green-50 rounded text-green-800">${q.model_answer}</p></div>` : ''}
+          ${q.model_answer ? `<div class="mb-3"><span class="text-xs font-bold text-muted uppercase">Model Answer:</span><p class="text-sm mt-1 p-3 bg-green-50 rounded text-green-800">${esc(q.model_answer)}</p></div>` : ''}
           <div class="flex items-center gap-3 pt-3 border-t border-slate-100">
             <label class="text-sm font-bold text-slate-700">Assign Points:</label>
             <input type="number" id="grade_${r.id}_${q.id}" class="form-input" style="width:100px;" placeholder="0-${qPoints}" min="0" max="${qPoints}" step="0.5" value="${currentScore}">
@@ -1023,8 +1101,8 @@ async function loadGrading() {
     div.innerHTML = `
       <div class="flex justify-between items-center mb-4 border-b pb-4">
         <div>
-          <h4 class="font-bold text-lg">${r.student?.name || 'Student'}</h4>
-          <p class="text-xs text-muted">${r.exams?.courses?.name || 'Course'} | Submitted: ${new Date(r.submitted_at).toLocaleDateString()}</p>
+          <h4 class="font-bold text-lg">${esc(r.student?.name || 'Student')}</h4>
+          <p class="text-xs text-muted">${esc(r.exams?.courses?.name || 'Course')} | Submitted: ${new Date(r.submitted_at).toLocaleDateString()}</p>
           <p class="text-sm mt-1 font-bold text-primary">Auto MCQ Score: ${r.mcq_score || 0} pts</p>
         </div>
         <span class="status-badge pending">Needs Grading</span>
@@ -1072,14 +1150,20 @@ window.submitGrade = async (resultId, examId) => {
   }).eq('id', resultId);
 
   if (error) ui.toast(error.message, 'error');
-  else { ui.toast('Grade finalized! ✅', 'success'); loadGrading(); loadStats(); }
+  else { ui.toast('Grade finalized! âœ…', 'success'); loadGrading(); loadStats(); }
 }
 
 
 function setupMobileMenu() {
     const btn = document.getElementById('mobileMenuBtn');
     const sidebar = document.getElementById('sidebar');
-    if(btn && sidebar) btn.onclick = () => sidebar.classList.toggle('open');
+    const overlay = document.getElementById('sidebarOverlay');
+    if(btn && sidebar) {
+        btn.onclick = () => {
+            sidebar.classList.toggle('open');
+            if(overlay) overlay.classList.toggle('open');
+        };
+    }
 }
 async function viewStudentResults(studentId, studentName) {
     document.getElementById('studentResultsTitle').textContent = `Results: ${studentName}`;
@@ -1098,10 +1182,10 @@ async function viewStudentResults(studentId, studentName) {
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td>
-                    <div class="font-bold">${r.exams?.title || 'Final Exam'}</div>
-                    <div class="text-[10px] text-muted">${r.exams?.courses?.name || 'Course'}</div>
+                    <div class="font-bold">${esc(r.exams?.title || 'Final Exam')}</div>
+                    <div class="text-[10px] text-muted">${esc(r.exams?.courses?.name || 'Course')}</div>
                 </td>
-                <td><span class="font-bold text-primary">${r.score}%</span></td>
+                <td><span class="font-bold text-primary">${r.score ?? '?'} / ${r.max_score ?? '?'}</span></td>
                 <td><span class="status-badge ${r.is_graded ? 'approved' : 'pending'}">${r.is_graded ? 'Graded' : 'Pending'}</span></td>
                 <td class="text-xs text-muted">${new Date(r.submitted_at).toLocaleDateString()}</td>`;
             tbody.appendChild(tr);
@@ -1116,13 +1200,20 @@ window.openModal = (id) => document.getElementById(id).classList.add('open');
 document.getElementById('logoutBtn').onclick = () => routing.logout();
 document.getElementById('langToggle').onclick = () => i18n.toggle();
 
+let _refreshTimeout;
+function debouncedRefresh() {
+  clearTimeout(_refreshTimeout);
+  _refreshTimeout = setTimeout(() => refreshData(), 500);
+}
+
 function setupRealtime() {
     supabase.channel('academic_sync')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => refreshData())
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'departments' }, () => refreshData())
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'courses' }, () => refreshData())
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'materials' }, () => refreshData())
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'announcements' }, () => refreshData())
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => debouncedRefresh())
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'departments' }, () => debouncedRefresh())
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'courses' }, () => debouncedRefresh())
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'materials' }, () => debouncedRefresh())
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'results' }, () => debouncedRefresh())
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'announcements' }, () => debouncedRefresh())
         .subscribe();
 }
 
@@ -1131,3 +1222,4 @@ setupRealtime();
 </script>
 </body>
 </html>
+

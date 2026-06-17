@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" translate="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="google" content="notranslate">
+    <title>Super Admin - Akram Academy</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .view-section { display: none; }
+        .view-section.active { display: block; animation: fadeIn 0.35s ease-out; }
+        @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+        .role-badge { padding: 3px 10px; border-radius: 20px; font-size: .72rem; font-weight: 700; text-transform: uppercase; }
+        .role-badge.super_admin { background:#ede9fe; color:#5b21b6; }
+        .role-badge.admin       { background:#dbeafe; color:#1e40af; }
+        .role-badge.instructor  { background:#dcfce7; color:#166534; }
+        .role-badge.student     { background:#f1f5f9; color:#475569; }
+        .status-badge.pending   { background:#fef9c3; color:#854d0e; }
+        .status-badge.approved  { background:#dcfce7; color:#166534; }
+        .status-badge.rejected  { background:#fee2e2; color:#991b1b; }
+        .status-badge { padding: 3px 10px; border-radius: 20px; font-size: .72rem; font-weight: 700; text-transform: uppercase; }
+        .modal-bg { display:none; position:fixed; inset:0; background:rgba(15,23,42,.55);
+                    backdrop-filter:blur(4px); align-items:center; justify-content:center; z-index:2000; }
+        .modal-bg.open { display:flex; }
+        .grid-cols-4 { grid-template-columns: repeat(4,1fr); }
+    </style>
+  <script type="module" crossorigin src="/assets/super_admin-DpMg_cPH.js"></script>
+  <link rel="modulepreload" crossorigin href="/assets/i18n-DRKnIWRY.js">
+  <link rel="modulepreload" crossorigin href="/assets/supabase-CizyiV9c.js">
+  <link rel="modulepreload" crossorigin href="/assets/routing-BvDlne0Z.js">
+  <link rel="modulepreload" crossorigin href="/assets/ui-B_NTAJb_.js">
+  <link rel="stylesheet" crossorigin href="/assets/i18n-COyG8zfE.css">
+</head>
+<body class="bg-light">
+<div class="dashboard-layout">
+
+  <!-- ======= SIDEBAR ======= -->
+  <aside class="sidebar" id="sidebar">
+    <div class="logo mb-10">
+      <i class="fas fa-shield-alt"></i>
+      <span data-i18n="appName">Akram Academy</span>
+    </div>
+    <nav>
+      <a href="#" class="nav-link active" data-view="overview">
+        <i class="fas fa-chart-pie"></i><span data-i18n="overview">Overview</span>
+      </a>
+      <a href="#" class="nav-link" data-view="users">
+        <i class="fas fa-users"></i><span data-i18n="userManagement">User Management</span>
+      </a>
+      <a href="#" class="nav-link" data-view="depts">
+        <i class="fas fa-building"></i><span data-i18n="departments">Departments</span>
+      </a>
+      <a href="#" class="nav-link" data-view="results">
+        <i class="fas fa-poll-h"></i><span data-i18n="results">All Results</span>
+      </a>
+      <div style="margin-top:auto;border-top:1px solid var(--border);padding-top:1rem;">
+        <button id="logoutBtn" class="nav-link w-full" style="background:none;border:none;cursor:pointer;color:var(--danger);">
+          <i class="fas fa-sign-out-alt"></i><span data-i18n="logout">Sign Out</span>
+        </button>
+      </div>
+    </nav>
+  </aside>
+
+  <!-- ======= MAIN ======= -->
+  <main class="main-content">
+    <header class="top-header">
+      <div class="flex items-center gap-4">
+        <button id="mobileMenuBtn" class="btn btn-outline btn-sm mobile-only">
+          <i class="fas fa-bars"></i>
+        </button>
+        <div>
+          <h1 id="viewTitle" class="text-2xl font-bold">System Overview</h1>
+          <p class="text-sm text-muted" id="adminInfo">Super Administrator</p>
+        </div>
+      </div>
+      <div class="flex gap-4 items-center">
+        <button id="langToggle" class="btn btn-outline btn-sm" data-i18n="switchLang">العربية</button>
+        <div class="flex items-center gap-3">
+          <div>
+            <div id="adminName" class="font-bold">Super Admin</div>
+            <div class="text-xs text-muted">System Manager</div>
+          </div>
+          <div class="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold"
+               style="background:var(--primary);">
+            <i class="fas fa-user-shield"></i>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- OVERVIEW -->
+    <section id="overviewSection" class="view-section active">
+      <div class="grid grid-cols-4 gap-6 mb-10">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:rgba(245,158,11,.1);color:var(--warning);">
+            <i class="fas fa-user-clock"></i>
+          </div>
+          <div><div class="text-2xl font-bold" id="statPending">0</div>
+               <div class="text-sm text-muted">Pending Users</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:rgba(37,99,235,.1);color:var(--primary);">
+            <i class="fas fa-users"></i>
+          </div>
+          <div><div class="text-2xl font-bold" id="statTotal">0</div>
+               <div class="text-sm text-muted">Total Users</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:rgba(16,185,129,.1);color:var(--success);">
+            <i class="fas fa-building"></i>
+          </div>
+          <div><div class="text-2xl font-bold" id="statDepts">0</div>
+               <div class="text-sm text-muted">Departments</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:rgba(139,92,246,.1);color:#8b5cf6;">
+            <i class="fas fa-file-signature"></i>
+          </div>
+          <div><div class="text-2xl font-bold" id="statResults">0</div>
+               <div class="text-sm text-muted">Total Results</div></div>
+        </div>
+      </div>
+      <!-- Quick pending table -->
+      <div class="glass-card p-0 overflow-hidden">
+        <div class="p-5 border-b border-border flex justify-between items-center">
+          <h3 class="font-bold"><i class="fas fa-bell text-warning mr-2"></i>Pending Approvals</h3>
+          <button class="btn btn-primary btn-sm" onclick="switchView('users')">View All Users</button>
+        </div>
+        <table class="data-table"><thead><tr>
+          <th>Name</th><th>Role</th><th>Department</th><th>Action</th>
+        </tr></thead><tbody id="pendingTable"></tbody></table>
+      </div>
+    </section>
+
+    <!-- USERS -->
+    <section id="usersSection" class="view-section">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-xl font-bold">User Management</h2>
+        <div class="flex gap-3">
+          <select id="filterRole" class="form-input" style="width:160px;">
+            <option value="">All Roles</option>
+            <option value="student">Student</option>
+            <option value="instructor">Instructor</option>
+            <option value="admin">Admin</option>
+            <option value="super_admin">Super Admin</option>
+          </select>
+          <select id="filterStatus" class="form-input" style="width:160px;">
+            <option value="">All Status</option>
+            <option value="pending">Pending</option>
+            <option value="approved">Approved</option>
+            <option value="rejected">Rejected</option>
+          </select>
+        </div>
+      </div>
+      <div class="glass-card p-0 overflow-hidden">
+        <table class="data-table"><thead><tr>
+          <th>Name</th><th>Role</th><th>Department</th><th>Status</th><th>Joined</th><th>Actions</th>
+        </tr></thead><tbody id="userTable"></tbody></table>
+      </div>
+    </section>
+
+    <!-- DEPARTMENTS -->
+    <section id="deptsSection" class="view-section">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-xl font-bold">Departments</h2>
+        <button class="btn btn-primary" id="openAddDeptModal">
+          <i class="fas fa-plus"></i> Add Department
+        </button>
+      </div>
+      <div id="deptList" class="grid grid-cols-3 gap-6"></div>
+    </section>
+
+    <!-- RESULTS -->
+    <section id="resultsSection" class="view-section">
+      <h2 class="text-xl font-bold mb-6">All Student Results</h2>
+      <div class="glass-card p-0 overflow-hidden">
+        <table class="data-table"><thead><tr>
+          <th>Student</th><th>Device</th><th>Score</th><th>Status</th><th>Date</th><th>Actions</th>
+        </tr></thead><tbody id="resultsTable"></tbody></table>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ADD DEPT MODAL -->
+<div class="modal-bg" id="addDeptModal">
+  <div class="modal" style="max-width:440px;">
+    <h3 class="mb-5"><i class="fas fa-building text-primary mr-2"></i>New Department</h3>
+    <div class="form-group mb-4">
+      <label>Department Name</label>
+      <input type="text" id="deptName" class="form-input" placeholder="e.g. Radiology">
+    </div>
+    <div class="form-group mb-6">
+      <label>Description</label>
+      <textarea id="deptDesc" class="form-input" rows="3" placeholder="Brief description..."></textarea>
+    </div>
+    <div class="flex gap-4">
+      <button class="btn btn-outline flex-1" onclick="closeModal('addDeptModal')">Cancel</button>
+      <button class="btn btn-primary flex-1" id="saveDeptBtn">Save Department</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT USER MODAL -->
+<div class="modal-bg" id="editUserModal">
+  <div class="modal" style="max-width:440px;">
+    <h3 class="mb-5"><i class="fas fa-user-edit text-primary mr-2"></i>Edit User</h3>
+    <input type="hidden" id="editUserId">
+    <div class="form-group mb-4">
+      <label>Role</label>
+      <select id="editUserRole" class="form-input">
+        <option value="student">Student</option>
+        <option value="instructor">Instructor</option>
+        <option value="admin">Admin</option>
+        <option value="super_admin">Super Admin</option>
+      </select>
+    </div>
+    <div class="form-group mb-4">
+      <label>Status</label>
+      <select id="editUserStatus" class="form-input">
+        <option value="pending">Pending</option>
+        <option value="approved">Approved</option>
+        <option value="rejected">Rejected</option>
+      </select>
+    </div>
+    <div class="form-group mb-6">
+      <label>Department</label>
+      <select id="editUserDept" class="form-input"></select>
+    </div>
+    <div class="flex gap-4">
+      <button class="btn btn-outline flex-1" onclick="closeModal('editUserModal')">Cancel</button>
+      <button class="btn btn-primary flex-1" id="saveUserBtn">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<div id="toastContainer" class="toast-container"></div>
+
+</body>
+</html>

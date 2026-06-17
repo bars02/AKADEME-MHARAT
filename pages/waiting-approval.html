@@ -42,28 +42,78 @@
         import i18n from '../js/i18n.js';
         import { supabase } from '../js/services/supabase.js';
 
-        async function check() {
+        let userId = null;
+
+        async function init() {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) { window.location.href = '../login.html'; return; }
+            userId = user.id;
 
-            const { data: profile } = await supabase.from('profiles').select('status, role').eq('id', user.id).single();
-            
+            // Check current status immediately
+            await checkAndRedirect();
+
+            // ✅ Realtime subscription — no polling needed
+            const channel = supabase
+                .channel(`approval-watch-${userId}`)
+                .on('postgres_changes', {
+                    event: 'UPDATE',
+                    schema: 'public',
+                    table: 'profiles',
+                    filter: `id=eq.${userId}`
+                }, (payload) => {
+                    if (payload.new.status === 'approved') {
+                        showApprovedAnimation(payload.new.role);
+                    }
+                })
+                .subscribe();
+
+            document.getElementById('logoutBtn').addEventListener('click', async () => {
+                await channel.unsubscribe();
+                await supabase.auth.signOut();
+                window.location.href = '../login.html';
+            });
+
+            i18n.updateDOM();
+        }
+
+        async function checkAndRedirect() {
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('status, role')
+                .eq('id', userId)
+                .single();
+
             if (profile && profile.status === 'approved') {
-                window.location.href = `../dashboard/${profile.role}.html`;
+                showApprovedAnimation(profile.role);
             }
         }
 
-        // Auto-check every 5 seconds
-        const checkInterval = setInterval(check, 5000);
+        function showApprovedAnimation(role) {
+            const card = document.querySelector('.glass-card');
+            card.innerHTML = `
+                <div class="mb-6" style="color: var(--success); font-size: 4rem; animation: bounceIn 0.6s ease;">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <h2 style="color: var(--success); font-size: 1.5rem; font-weight: 800; margin-bottom: 1rem;">
+                    ✅ Account Approved!
+                </h2>
+                <p style="color: var(--text-muted); margin-bottom: 2rem;">
+                    Redirecting you to your dashboard...
+                </p>
+                <div style="width: 100%; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden;">
+                    <div style="height: 100%; background: var(--success); animation: progressBar 1.5s ease-out forwards;"></div>
+                </div>
+                <style>
+                    @keyframes bounceIn { 0% { transform: scale(0); } 70% { transform: scale(1.2); } 100% { transform: scale(1); } }
+                    @keyframes progressBar { from { width: 0; } to { width: 100%; } }
+                </style>
+            `;
+            setTimeout(() => {
+                window.location.href = `../dashboard/${role}.html`;
+            }, 1600);
+        }
 
-        document.getElementById('logoutBtn').addEventListener('click', async () => {
-            clearInterval(checkInterval);
-            await supabase.auth.signOut();
-            window.location.href = '../login.html';
-        });
-
-        check();
-        i18n.updateDOM();
+        init();
     </script>
 </body>
 </html>

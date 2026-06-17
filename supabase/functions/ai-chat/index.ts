@@ -1,7 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 
 // Groq API - Works globally, Free tier: 14,400 requests/day
-const GROQ_API_KEY = Deno.env.get('GROQ_API_KEY')
 const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
 const GROQ_MODEL = "llama-3.3-70b-versatile" // Best free model on Groq
 
@@ -17,7 +16,7 @@ serve(async (req: Request) => {
   }
 
   try {
-    const { message, department, course } = await req.json()
+    const { message, agentType = 'main', course } = await req.json()
 
     if (!message) {
       return new Response(JSON.stringify({ error: 'Message is required' }), {
@@ -26,18 +25,40 @@ serve(async (req: Request) => {
       })
     }
 
-    const dept = department || 'General Medical Training';
-    const courseName = course || 'General Course';
+    // Determine which API key to use based on agentType
+    let GROQ_API_KEY = Deno.env.get('GROQ_API_KEY_MAIN');
+    if (agentType === 'medical') {
+      GROQ_API_KEY = Deno.env.get('GROQ_API_KEY_MEDICAL') || GROQ_API_KEY;
+    } else if (agentType === 'pathology') {
+      GROQ_API_KEY = Deno.env.get('GROQ_API_KEY_PATHOLOGY') || GROQ_API_KEY;
+    }
 
-    const systemPrompt = `You are the "Maharat Academy AI Assistant", an expert medical tutor for the "${dept}" department, specifically for the "${courseName}" course.
-    
-    CRITICAL GUIDELINES:
-    1. Be CONCISE. Provide short, direct, and factual answers (max 2-3 sentences unless absolutely necessary).
-    2. TEXT ONLY. Never suggest downloading files, PDFs, or external links.
-    3. NO IMAGES/MEDIA. Focus entirely on text-based explanation.
-    4. Focus strictly on the medical/technical aspects of the current course.
-    5. Match the user's language (Arabic/English).
-    6. Never provide medical diagnoses for patients.`;
+    if (!GROQ_API_KEY) {
+      throw new Error(`API Key for ${agentType} is missing in Supabase Secrets.`);
+    }
+
+    // System Prompts for each agent
+    const SYSTEM_PROMPTS: Record<string, string> = {
+        main: `أنت المساعد الذكي الرسمي لمنصة "أكاديمية مهارات" (Maharat Academy).
+مهمتك: مساعدة الزوار في فهم المنصة وشرح أقسامها (الأجهزة الطبية، والتحليلات المرضية) وتوجيههم لإنشاء حساب.
+شخصيتك: مهني، مرحب، وداعم.
+تعليمات هامة: 
+1. أجب بإيجاز (سطرين إلى ثلاثة كحد أقصى).
+2. لا تخترع معلومات غير موجودة عن المنصة.
+3. إذا سألك المستخدم عن كيفية التسجيل، وجهه لزر "إنشاء حساب" (Create Account) في الصفحة.`,
+        
+        medical: `أنت خبير محترف في صيانة وتشغيل "الأجهزة الطبية".
+مهمتك: الإجابة على أسئلة المهندسين والطلاب حول الأجهزة الطبية والمحاكاة.
+شخصيتك: دقيق، علمي، وعملي.
+تعليمات هامة: أجب بشكل مختصر ودقيق جداً (لا تتجاوز 3 أسطر). التركيز فقط على الجانب الهندسي والطبي للأجهزة.`,
+        
+        pathology: `أنت طبيب خبير في "التحليلات المرضية والمختبرات".
+مهمتك: شرح كيفية تحليل العينات وقراءة المؤشرات الحيوية للطلاب.
+شخصيتك: أكاديمي، دقيق، وطبي.
+تعليمات هامة: أجب بشكل مختصر وعلمي (لا تتجاوز 3 أسطر). لا تقم بتشخيص طبي للمرضى.`
+    };
+
+    const systemPrompt = SYSTEM_PROMPTS[agentType] || SYSTEM_PROMPTS['main'];
 
     const response = await fetch(GROQ_API_URL, {
       method: 'POST',
@@ -51,8 +72,8 @@ serve(async (req: Request) => {
           { role: "system", content: systemPrompt },
           { role: "user", content: message }
         ],
-        max_tokens: 800,
-        temperature: 0.7,
+        max_tokens: 150,
+        temperature: 0.5,
       })
     })
 

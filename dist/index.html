@@ -1,44 +1,34 @@
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
-
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.groq.com; media-src 'self' blob: https:; frame-src blob: https://www.youtube.com;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; media-src 'self' blob: https:; frame-src blob: https://www.youtube.com;">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Maharat Academy - Professional Medical Training</title>
-    <link rel="stylesheet" href="css/main.css">
-    <link rel="stylesheet" href="css/components.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         .hero {
             padding: 12rem 2rem 8rem;
-            background:
+            background: 
                 radial-gradient(circle at 10% 20%, rgba(37, 99, 235, 0.05) 0%, transparent 40%),
                 radial-gradient(circle at 90% 80%, rgba(14, 165, 233, 0.08) 0%, transparent 40%);
             text-align: center;
             position: relative;
         }
-
         .hero::before {
             content: '';
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 100%;
+            top: 0; left: 0; right: 0; height: 100%;
             background: url('https://www.transparenttextures.com/patterns/cubes.png');
             opacity: 0.03;
             pointer-events: none;
         }
-
         .gradient-text {
             background: linear-gradient(135deg, var(--primary), var(--accent));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             font-weight: 800;
         }
-
         .feature-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -47,7 +37,6 @@
             position: relative;
             z-index: 10;
         }
-
         .feature-card {
             background: white;
             padding: 3rem 2rem;
@@ -57,32 +46,27 @@
             box-shadow: var(--shadow-md);
             text-align: left;
         }
-
-        [dir="rtl"] .feature-card {
-            text-align: right;
-        }
-
+        [dir="rtl"] .feature-card { text-align: right; }
         .feature-card:hover {
             transform: translateY(-15px);
             box-shadow: var(--shadow-lg);
             border-color: var(--primary);
         }
-
         .feature-icon {
-            width: 64px;
-            height: 64px;
+            width: 64px; height: 64px;
             border-radius: 20px;
             background: var(--primary-light);
             color: var(--primary);
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            display: flex; align-items: center; justify-content: center;
             font-size: 1.5rem;
             margin-bottom: 1.5rem;
         }
     </style>
+  <script type="module" crossorigin src="/assets/main--Ysk_ti1.js"></script>
+  <link rel="modulepreload" crossorigin href="/assets/i18n-DRKnIWRY.js">
+  <link rel="modulepreload" crossorigin href="/assets/supabase-CizyiV9c.js">
+  <link rel="stylesheet" crossorigin href="/assets/i18n-COyG8zfE.css">
 </head>
-
 <body class="bg-light">
     <!-- Navbar -->
     <nav class="glass-nav-fixed">
@@ -91,23 +75,18 @@
             <span class="brand-text">Maharat</span>
         </a>
         <div class="flex gap-4 items-center">
-            <button id="langToggle" class="btn btn-outline btn-sm hidden-mobile" data-i18n="switchLang"
-                style="border-radius: 20px;">Ø§Ù„Ø¹Ø±Ø¨ÙŠØ©</button>
-            <a href="login.html" class="btn btn-outline btn-sm" data-i18n="login" style="border-radius: 20px;">Sign
-                In</a>
-            <a href="register.html" class="btn btn-primary btn-sm" data-i18n="register"
-                style="border-radius: 20px;">Join Now</a>
+            <button id="langToggle" class="btn btn-outline btn-sm hidden-mobile" data-i18n="switchLang" style="border-radius: 20px;">Ø§Ù„Ø¹Ø±Ø¨ÙŠØ©</button>
+            <a href="login.html" class="btn btn-outline btn-sm" data-i18n="login" style="border-radius: 20px;">Sign In</a>
+            <a href="register.html" class="btn btn-primary btn-sm" data-i18n="register" style="border-radius: 20px;">Join Now</a>
         </div>
     </nav>
 
     <main>
         <!-- Hero Section -->
         <section class="hero" style="position: relative; overflow: hidden; padding-top: 10rem;">
-            <canvas id="particles-bg"
-                style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none;"></canvas>
+            <canvas id="particles-bg" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none;"></canvas>
             <div class="container" style="position: relative; z-index: 2;">
-                <div
-                    class="inline-block px-4 py-2 rounded-full bg-blue-50 text-primary text-xs font-bold uppercase tracking-widest mb-6 animate-pulse">
+                <div class="inline-block px-4 py-2 rounded-full bg-blue-50 text-primary text-xs font-bold uppercase tracking-widest mb-6 animate-pulse">
                     Next Generation Medical Platform
                 </div>
                 <h1 class="text-5xl md:text-7xl mb-6 leading-tight">
@@ -115,8 +94,7 @@
                     <span class="gradient-text">With AI Precision</span>
                 </h1>
                 <p class="text-xl text-muted mx-auto mb-12 max-w-2xl">
-                    Maharat Academy provides department-based medical training, interactive device simulations, and
-                    personalized AI tutoring for the modern medical professional.
+                    Maharat Academy provides department-based medical training, interactive device simulations, and personalized AI tutoring for the modern medical professional.
                 </p>
                 <div class="flex flex-col md:row justify-center gap-4">
                     <a href="register.html" class="btn btn-primary px-12 py-4 text-lg">Start Learning For Free</a>
@@ -131,22 +109,17 @@
                 <div class="feature-card">
                     <div class="feature-icon"><i class="fas fa-layer-group"></i></div>
                     <h3 class="text-xl mb-4">Department Focused</h3>
-                    <p class="text-muted text-sm">Organized learning paths managed by academic experts specialized in
-                        each medical department.</p>
+                    <p class="text-muted text-sm">Organized learning paths managed by academic experts specialized in each medical department.</p>
                 </div>
                 <div class="feature-card">
-                    <div class="feature-icon" style="color:var(--success); background:#ecfdf5;"><i
-                            class="fas fa-vial"></i></div>
+                    <div class="feature-icon" style="color:var(--success); background:#ecfdf5;"><i class="fas fa-vial"></i></div>
                     <h3 class="text-xl mb-4">Advanced Simulation</h3>
-                    <p class="text-muted text-sm">Interact with virtual medical devices and laboratory equipment in a
-                        risk-free, immersive environment.</p>
+                    <p class="text-muted text-sm">Interact with virtual medical devices and laboratory equipment in a risk-free, immersive environment.</p>
                 </div>
                 <div class="feature-card">
-                    <div class="feature-icon" style="color:var(--accent); background:#f0f9ff;"><i
-                            class="fas fa-brain"></i></div>
+                    <div class="feature-icon" style="color:var(--accent); background:#f0f9ff;"><i class="fas fa-brain"></i></div>
                     <h3 class="text-xl mb-4">AI Tutor Integration</h3>
-                    <p class="text-muted text-sm">Get instant answers and guidance from our Gemini-powered AI assistants
-                        customized for your department.</p>
+                    <p class="text-muted text-sm">Get instant answers and guidance from our Gemini-powered AI assistants customized for your department.</p>
                 </div>
             </div>
         </section>
@@ -183,44 +156,6 @@
         </div>
     </footer>
 
-    <script type="module" src="js/particles-bg.js"></script>
-    <script type="module">
-        import i18n from './js/i18n.js';
-        import { initAIWidget } from '/js/ai-widget.js';
-        import { supabase } from './js/services/supabase.js';
-
-        async function checkSession() {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (user) {
-                const { data: profile } = await supabase.from('profiles').select('role, status').eq('id', user.id).single();
-                if (profile) {
-                    if (profile.status === 'approved') {
-                        window.location.href = `./dashboard/${profile.role}.html`;
-                    } else {
-                        window.location.href = `./pages/waiting-approval.html`;
-                    }
-                }
-            }
-        }
-
-        // Listen for Auth State Changes
-        supabase.auth.onAuthStateChange((event, session) => {
-            if (event === 'SIGNED_IN') {
-                checkSession();
-            }
-        });
-
-        document.getElementById('langToggle').addEventListener('click', () => i18n.toggle());
-
-        checkSession();
-        i18n.updateDOM();
-        initAIWidget();
-
-        // Initialize particle network for Hero section
-        document.addEventListener('DOMContentLoaded', () => {
-            if (window.ParticleNetwork) new window.ParticleNetwork('particles-bg');
-        });
-    </script>
 </body>
-
 </html>
+

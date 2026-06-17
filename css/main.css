@@ -288,10 +288,25 @@ body {
 }
 
 @media (max-width: 768px) {
-    .sidebar { transform: translateX(-100%); }
+    .sidebar { transform: translateX(-100%); z-index: 1100; }
     [dir="rtl"] .sidebar { transform: translateX(100%); }
     .sidebar.open { transform: translateX(0); }
     
+    .sidebar-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.6);
+        backdrop-filter: blur(4px);
+        z-index: 1050;
+        display: none;
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+    .sidebar-overlay.open {
+        display: block;
+        opacity: 1;
+    }
+
     .main-content {
         margin-left: 0;
         max-width: 100vw;
@@ -301,6 +316,15 @@ body {
     .grid-cols-2, .grid-cols-3, .grid-cols-4 { grid-template-columns: 1fr; }
     
     .top-header { flex-direction: column; align-items: stretch; gap: 1.5rem; }
+    .top-header > div:first-child { flex-direction: row; align-items: center; justify-content: flex-start; }
+    
+    /* Fix back buttons on mobile */
+    .view-section > .flex.items-center.gap-4 {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    .view-section > .flex.items-center.gap-4 > button { width: 100%; justify-content: center; }
     
     .mobile-only { display: inline-flex; }
     .hidden-mobile { display: none; }
@@ -311,3 +335,317 @@ body {
 .text-muted { color: var(--text-muted); }
 .text-primary { color: var(--primary); }
 .font-bold { font-weight: 700; }
+.font-medium { font-weight: 500; }
+.font-semibold { font-weight: 600; }
+
+/* =========================================
+   UTILITY CLASS SYSTEM (custom, no Tailwind)
+   ========================================= */
+
+/* Display */
+.flex { display: flex; }
+.inline-flex { display: inline-flex; }
+.grid { display: grid; }
+.block { display: block; }
+.inline-block { display: inline-block; }
+.hidden { display: none; }
+
+/* Flex helpers */
+.flex-col { flex-direction: column; }
+.flex-row { flex-direction: row; }
+.flex-1 { flex: 1; }
+.flex-shrink-0 { flex-shrink: 0; }
+.flex-wrap { flex-wrap: wrap; }
+.items-center { align-items: center; }
+.items-start { align-items: flex-start; }
+.items-end { align-items: flex-end; }
+.justify-center { justify-content: center; }
+.justify-between { justify-content: space-between; }
+.justify-end { justify-content: flex-end; }
+.justify-start { justify-content: flex-start; }
+
+/* Grid columns */
+.grid-cols-1 { grid-template-columns: 1fr; }
+.grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
+.grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
+.grid-cols-4 { grid-template-columns: repeat(4, 1fr); }
+
+/* Gap */
+.gap-1 { gap: 0.25rem; }
+.gap-2 { gap: 0.5rem; }
+.gap-3 { gap: 0.75rem; }
+.gap-4 { gap: 1rem; }
+.gap-5 { gap: 1.25rem; }
+.gap-6 { gap: 1.5rem; }
+.gap-8 { gap: 2rem; }
+.gap-10 { gap: 2.5rem; }
+.gap-12 { gap: 3rem; }
+
+/* Width & Height */
+.w-full { width: 100%; }
+.w-10 { width: 2.5rem; }
+.w-6 { width: 1.5rem; }
+.h-10 { height: 2.5rem; }
+.h-full { height: 100%; }
+.min-vh-100 { min-height: 100vh; }
+.max-w-2xl { max-width: 42rem; }
+
+/* Text sizes */
+.text-xs { font-size: 0.75rem; }
+.text-sm { font-size: 0.875rem; }
+.text-base { font-size: 1rem; }
+.text-lg { font-size: 1.125rem; }
+.text-xl { font-size: 1.25rem; }
+.text-2xl { font-size: 1.5rem; }
+.text-3xl { font-size: 1.875rem; }
+.text-4xl { font-size: 2.25rem; }
+.text-5xl { font-size: 3rem; }
+.text-7xl { font-size: 4.5rem; }
+
+/* Text align */
+.text-center { text-align: center; }
+.text-left { text-align: left; }
+.text-right { text-align: right; }
+[dir="rtl"] .text-left { text-align: right; }
+[dir="rtl"] .text-right { text-align: left; }
+
+/* Margin */
+.mb-2 { margin-bottom: 0.5rem; }
+.mb-4 { margin-bottom: 1rem; }
+.mb-6 { margin-bottom: 1.5rem; }
+.mb-8 { margin-bottom: 2rem; }
+.mb-10 { margin-bottom: 2.5rem; }
+.mt-2 { margin-top: 0.5rem; }
+.mt-4 { margin-top: 1rem; }
+.mt-6 { margin-top: 1.5rem; }
+.mt-8 { margin-top: 2rem; }
+.mt-10 { margin-top: 2.5rem; }
+.ml-auto { margin-left: auto; }
+.mr-1 { margin-right: 0.25rem; }
+.mx-auto { margin-left: auto; margin-right: auto; }
+
+/* Padding */
+.p-4 { padding: 1rem; }
+.p-6 { padding: 1.5rem; }
+.py-3 { padding-top: 0.75rem; padding-bottom: 0.75rem; }
+.py-4 { padding-top: 1rem; padding-bottom: 1rem; }
+.px-4 { padding-left: 1rem; padding-right: 1rem; }
+.px-8 { padding-left: 2rem; padding-right: 2rem; }
+.px-12 { padding-left: 3rem; padding-right: 3rem; }
+.pt-6 { padding-top: 1.5rem; }
+.pb-32 { padding-bottom: 8rem; }
+.py-24 { padding-top: 6rem; padding-bottom: 6rem; }
+
+/* Border */
+.border { border: 1px solid var(--border); }
+.border-t { border-top: 1px solid var(--border); }
+.border-y { border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.border-border { border-color: var(--border); }
+.border-dashed { border-style: dashed; }
+.rounded-full { border-radius: 9999px; }
+.rounded-xl { border-radius: 16px; }
+
+/* Colors */
+.text-white { color: white; }
+.bg-white { background: white; }
+.bg-blue-50 { background: #eff6ff; }
+.text-slate-300 { color: #cbd5e1; }
+
+/* Object fit */
+.object-cover { object-fit: cover; }
+.overflow-hidden { overflow: hidden; }
+
+/* Position */
+.relative { position: relative; }
+.absolute { position: absolute; }
+
+/* Tracking & uppercase */
+.tracking-widest { letter-spacing: 0.1em; }
+.uppercase { text-transform: uppercase; }
+.capitalize { text-transform: capitalize; }
+
+/* Leading */
+.leading-tight { line-height: 1.25; }
+
+/* Shadow */
+.shadow-lg { box-shadow: var(--shadow-lg); }
+
+/* Animate pulse */
+.animate-pulse { animation: pulseFade 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+@keyframes pulseFade {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* md: responsive helpers */
+@media (min-width: 768px) {
+  .md\:px-16 { padding-left: 4rem; padding-right: 4rem; }
+  .md\:text-7xl { font-size: 4.5rem; }
+  .grid-cols-1.md\:grid-cols-4 { grid-template-columns: repeat(4, 1fr); }
+}
+.md\:row { flex-direction: row; }
+/* =========================================
+   UI REVAMP - PREMIUM DESIGN 2026
+   ========================================= */
+
+/* Animated Medical Pulse Logo Effect */
+.logo-medical {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.pulse-icon {
+    position: relative;
+    width: 45px; height: 45px;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    color: white;
+    font-size: 1.2rem;
+    box-shadow: 0 0 15px rgba(37, 99, 235, 0.4);
+    animation: glow-pulse 2s infinite alternate;
+}
+@keyframes glow-pulse {
+    0% { box-shadow: 0 0 10px rgba(37, 99, 235, 0.2); transform: scale(1); }
+    100% { box-shadow: 0 0 25px rgba(14, 165, 233, 0.8); transform: scale(1.05); }
+}
+
+.brand-text {
+    font-size: 1.8rem;
+    font-weight: 800;
+    background: linear-gradient(to right, var(--primary), var(--accent));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -0.5px;
+}
+
+/* On dark backgrounds (auth visual panel), use a lighter gradient */
+.auth-visual .brand-text {
+    background: linear-gradient(to right, #93c5fd, #38bdf8);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* Split-Screen Layout for Auth Pages */
+.auth-layout {
+    display: flex;
+    min-height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+}
+
+.auth-visual {
+    flex: 1.2;
+    position: relative;
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    padding: 3rem;
+    overflow: hidden;
+}
+.auth-visual canvas {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    z-index: 1;
+}
+.auth-visual-content {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    max-width: 500px;
+}
+.auth-visual-content h1 {
+    font-size: 3rem;
+    font-weight: 800;
+    margin-bottom: 1rem;
+    background: linear-gradient(to right, #60a5fa, #38bdf8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.auth-visual-content p {
+    font-size: 1.1rem;
+    color: #94a3b8;
+    line-height: 1.6;
+}
+
+.auth-form-wrapper {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-main);
+    padding: 2rem;
+    position: relative;
+    z-index: 10;
+}
+
+.auth-glass-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 3rem;
+    width: 100%;
+    max-width: 450px;
+    box-shadow: var(--shadow-lg);
+}
+
+/* Mobile Responsive Auth */
+@media (max-width: 900px) {
+    .auth-layout { flex-direction: column; }
+    .auth-visual { display: none; } /* Hide visual on small screens for simplicity, or we can make it an absolute background */
+    .auth-form-wrapper {
+        min-height: 100vh;
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        padding: 1.5rem;
+    }
+    .auth-glass-card {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
+    }
+    [data-theme="dark"] .auth-glass-card {
+        background: rgba(15, 23, 42, 0.85);
+    }
+}
+
+/* Navbar Fixes */
+.glass-nav-fixed {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 1000;
+    padding: 1rem 3rem;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.3s ease;
+}
+[data-theme="dark"] .glass-nav-fixed {
+    background: rgba(15, 23, 42, 0.85);
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+@media (max-width: 768px) {
+    .glass-nav-fixed { padding: 1rem 1.5rem; }
+    .brand-text { font-size: 1.4rem; }
+}
+
+/* Floating Input Labels */
+.form-group {
+    position: relative;
+    margin-bottom: 1.5rem;
+}
+.form-group label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-bottom: 0.4rem;
+    display: block;
+}
+

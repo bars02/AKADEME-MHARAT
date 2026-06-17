@@ -1,0 +1,44 @@
+import{i as v}from"./i18n-DRKnIWRY.js";import{r as b}from"./routing-BvDlne0Z.js";import{s as r}from"./supabase-CizyiV9c.js";import{u as d,e as o}from"./ui-B_NTAJb_.js";import"https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";let c=[],u=[];async function B(){const e=await b.checkAccess(["super_admin"]);e&&(document.getElementById("adminName").textContent=e.name||"Super Admin",await Promise.all([l(),m(),p(),w()]),M(),x(),I(),v.updateDOM())}function I(){const e=document.getElementById("mobileMenuBtn"),t=document.getElementById("sidebar");e&&t&&(e.onclick=()=>t.classList.toggle("open"),document.querySelectorAll(".nav-link").forEach(n=>{n.addEventListener("click",()=>{window.innerWidth<=768&&t.classList.remove("open")})}))}async function l(){const[{count:e},{count:t},{count:n},{count:s}]=await Promise.all([r.from("profiles").select("*",{count:"exact",head:!0}),r.from("profiles").select("*",{count:"exact",head:!0}).eq("status","pending"),r.from("departments").select("*",{count:"exact",head:!0}),r.from("results").select("*",{count:"exact",head:!0})]);document.getElementById("statTotal").textContent=e||0,document.getElementById("statPending").textContent=t||0,document.getElementById("statDepts").textContent=n||0,document.getElementById("statResults").textContent=s||0}async function m(){const{data:e,error:t}=await r.from("profiles").select("*, departments(name)").order("created_at",{ascending:!1}).limit(100);if(t){d.toast(t.message,"error");return}c=e||[],E(c),h(c.filter(n=>n.status==="pending"))}function h(e){const t=document.getElementById("pendingTable");if(t.innerHTML="",!e.length){t.innerHTML='<tr><td colspan="4" class="text-center text-muted p-6">No pending users 🎉</td></tr>';return}e.forEach(n=>{var a;const s=document.createElement("tr");s.innerHTML=`
+      <td class="font-medium">${o(n.name)}</td>
+      <td><span class="role-badge ${o(n.role)}">${o(n.role)}</span></td>
+      <td>${o(((a=n.departments)==null?void 0:a.name)||"N/A")}</td>
+      <td class="flex gap-2">
+        <button class="btn btn-primary btn-sm" onclick="quickApprove('${n.id}')">
+          <i class="fas fa-check"></i> Approve
+        </button>
+        <button class="btn btn-outline btn-sm" style="color:var(--danger)" onclick="quickReject('${n.id}')">
+          <i class="fas fa-times"></i>
+        </button>
+      </td>`,t.appendChild(s)})}function E(e){const t=document.getElementById("userTable");if(t.innerHTML="",!e.length){t.innerHTML='<tr><td colspan="6" class="text-center text-muted p-6">No users found</td></tr>';return}e.forEach(n=>{var i;const s=document.createElement("tr"),a=n.created_at?new Date(n.created_at).toLocaleDateString():"N/A";s.innerHTML=`
+      <td class="font-medium">${o(n.name)}</td>
+      <td><span class="role-badge ${o(n.role)}">${o(n.role)}</span></td>
+      <td>${o(((i=n.departments)==null?void 0:i.name)||"N/A")}</td>
+      <td><span class="status-badge ${o(n.status)}">${o(n.status)}</span></td>
+      <td class="text-muted" style="font-size:.85rem">${a}</td>
+      <td class="flex gap-2">
+        ${n.status==="pending"?`<button class="btn btn-primary btn-sm" onclick="quickApprove('${n.id}')"><i class="fas fa-check"></i></button>`:""}
+        <button class="btn btn-outline btn-sm" onclick="openEditUser('${n.id}')">
+          <i class="fas fa-edit"></i>
+        </button>
+      </td>`,t.appendChild(s)})}async function p(){const{data:e,error:t}=await r.from("departments").select("*").order("name");if(t)return;u=e||[],k(u);const n=document.getElementById("editUserDept");n.innerHTML="",u.forEach(s=>{const a=document.createElement("option");a.value=s.id,a.textContent=s.name,n.appendChild(a)})}function k(e){const t=document.getElementById("deptList");t.innerHTML="",e.forEach(n=>{const s=document.createElement("div");s.className="stat-card",s.style.flexDirection="column",s.style.alignItems="flex-start",s.innerHTML=`
+      <div class="flex items-center gap-4 mb-3">
+        <div class="stat-icon" style="background:rgba(14,165,233,.1);color:var(--accent);">
+          <i class="fas fa-building"></i>
+        </div>
+        <div>
+          <h4 class="font-bold">${o(n.name)}</h4>
+          <p class="text-xs text-muted">${o(n.description||"No description")}</p>
+        </div>
+      </div>
+      <button class="btn btn-outline btn-sm" style="color:var(--danger);margin-top:.5rem"
+              onclick="deleteDept('${n.id}')">
+        <i class="fas fa-trash"></i> Delete
+      </button>`,t.appendChild(s)})}async function w(){const{data:e,error:t}=await r.from("results").select("*, profiles(name), exams(course_id, courses(name))").order("submitted_at",{ascending:!1}).limit(100);if(t)return;const n=document.getElementById("resultsTable");n.innerHTML="",(e||[]).forEach(s=>{var f,g,y;const a=document.createElement("tr"),i=s.submitted_at?new Date(s.submitted_at).toLocaleDateString():"N/A";a.innerHTML=`
+      <td class="font-medium">${o(((f=s.profiles)==null?void 0:f.name)||"Unknown")}</td>
+      <td>${o(((y=(g=s.exams)==null?void 0:g.courses)==null?void 0:y.name)||"N/A")}</td>
+      <td><span class="font-bold text-primary">${s.score??"?"} / ${s.max_score??"?"}</span></td>
+      <td><span class="status-badge ${o(s.status)}">${o(s.status.replace("_"," "))}</span></td>
+      <td class="text-muted" style="font-size:.85rem">${i}</td>
+      <td>
+        ${s.status==="pending_review"?`<button class="btn btn-primary btn-sm" onclick="approveResult('${s.id}')"><i class="fas fa-check"></i> Approve</button>`:'<i class="fas fa-check-double text-success"></i>'}
+      </td>`,n.appendChild(a)})}window.quickApprove=async e=>{const{error:t}=await r.from("profiles").update({status:"approved"}).eq("id",e);t?d.toast(t.message,"error"):(d.toast("User approved!","success"),await Promise.all([l(),m()]))};window.quickReject=async e=>{const{error:t}=await r.from("profiles").update({status:"rejected"}).eq("id",e);t?d.toast(t.message,"error"):(d.toast("User rejected.","error"),await Promise.all([l(),m()]))};window.openEditUser=e=>{const t=c.find(n=>n.id===e);t&&(document.getElementById("editUserId").value=e,document.getElementById("editUserRole").value=t.role,document.getElementById("editUserStatus").value=t.status,document.getElementById("editUserDept").value=t.department_id||"",openModal("editUserModal"))};document.getElementById("saveUserBtn").onclick=async()=>{const e=document.getElementById("editUserId").value,t=document.getElementById("editUserRole").value,n=document.getElementById("editUserStatus").value,s=document.getElementById("editUserDept").value,{error:a}=await r.from("profiles").update({role:t,status:n,department_id:s}).eq("id",e);a?d.toast(a.message,"error"):(d.toast("User updated!"),closeModal("editUserModal"),await Promise.all([l(),m()]))};document.getElementById("saveDeptBtn").onclick=async()=>{const e=document.getElementById("deptName").value.trim(),t=document.getElementById("deptDesc").value.trim();if(!e){d.toast("Please enter a name","error");return}const{error:n}=await r.from("departments").insert({name:e,description:t});n?d.toast(n.message,"error"):(d.toast("Department added!"),closeModal("addDeptModal"),await Promise.all([l(),p()]))};window.deleteDept=async e=>{if(!confirm("Delete this department? All linked data will be removed."))return;const{error:t}=await r.from("departments").delete().eq("id",e);t?d.toast(t.message,"error"):(d.toast("Department deleted."),await Promise.all([l(),p()]))};window.approveResult=async e=>{const{error:t}=await r.from("results").update({status:"approved"}).eq("id",e);t?d.toast(t.message,"error"):(d.toast("Result approved!"),w())};function x(){const e=()=>{const t=document.getElementById("filterRole").value,n=document.getElementById("filterStatus").value;let s=c;t&&(s=s.filter(a=>a.role===t)),n&&(s=s.filter(a=>a.status===n)),E(s)};document.getElementById("filterRole").addEventListener("change",e),document.getElementById("filterStatus").addEventListener("change",e)}const $={overview:"System Overview",users:"User Management",depts:"Departments",results:"All Results"};function M(){document.querySelectorAll(".nav-link[data-view]").forEach(e=>{e.onclick=()=>switchView(e.dataset.view)})}window.switchView=e=>{var t,n;document.querySelectorAll(".nav-link").forEach(s=>s.classList.remove("active")),document.querySelectorAll(".view-section").forEach(s=>s.classList.remove("active")),(t=document.querySelector(`.nav-link[data-view="${e}"]`))==null||t.classList.add("active"),(n=document.getElementById(e+"Section"))==null||n.classList.add("active"),document.getElementById("viewTitle").textContent=$[e]||"Dashboard"};window.openModal=e=>document.getElementById(e).classList.add("open");window.closeModal=e=>document.getElementById(e).classList.remove("open");document.getElementById("openAddDeptModal").onclick=()=>openModal("addDeptModal");document.getElementById("logoutBtn").onclick=()=>b.logout();document.getElementById("langToggle").onclick=()=>v.toggle();B();
