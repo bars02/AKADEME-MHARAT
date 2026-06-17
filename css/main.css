@@ -482,8 +482,12 @@ body {
   .md\:px-16 { padding-left: 4rem; padding-right: 4rem; }
   .md\:text-7xl { font-size: 4.5rem; }
   .grid-cols-1.md\:grid-cols-4 { grid-template-columns: repeat(4, 1fr); }
+  .md\:row { flex-direction: row; }
+  .md\:gap-12 { gap: 3rem; }
+  .md\:py-24 { padding-top: 6rem; padding-bottom: 6rem; }
 }
-.md\:row { flex-direction: row; }
+.gap-6 { gap: 1.5rem; }
+.py-12 { padding-top: 3rem; padding-bottom: 3rem; }
 /* =========================================
    UI REVAMP - PREMIUM DESIGN 2026
    ========================================= */
