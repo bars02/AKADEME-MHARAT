@@ -4,25 +4,28 @@
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.groq.com; media-src 'self' blob: https:; frame-src blob: https://www.youtube.com;">
+        content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net; media-src 'self' blob: https:; frame-src blob: https://www.youtube.com;">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Maharat Academy - Professional Medical Training</title>
+    <title>Maharat Academy - Professional Training & Development</title>
+    <meta name="description" content="A specialized platform providing professional training programs, educational resources, assessments, and skill development in medical devices and pathological analysis.">
     <link rel="stylesheet" href="css/main.css">
     <link rel="stylesheet" href="css/components.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         .hero {
-            padding: 8rem 1.5rem 4rem;
+            padding: 8rem 1.5rem 6rem;
             background:
-                radial-gradient(circle at 10% 20%, rgba(37, 99, 235, 0.05) 0%, transparent 40%),
-                radial-gradient(circle at 90% 80%, rgba(14, 165, 233, 0.08) 0%, transparent 40%);
+                radial-gradient(circle at 10% 20%, rgba(37, 99, 235, 0.06) 0%, transparent 50%),
+                radial-gradient(circle at 90% 80%, rgba(14, 165, 233, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 50% 50%, rgba(37, 99, 235, 0.03) 0%, transparent 70%);
             text-align: center;
             position: relative;
+            overflow: hidden;
         }
 
         @media (min-width: 768px) {
             .hero {
-                padding: 12rem 2rem 8rem;
+                padding: 11rem 2rem 9rem;
             }
         }
 
@@ -46,10 +49,73 @@
             font-weight: 800;
         }
 
+        .badge-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1.25rem;
+            border-radius: 9999px;
+            background: var(--primary-light);
+            color: var(--primary);
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 1.5rem;
+        }
+
+        .badge-pill i {
+            font-size: 0.7rem;
+        }
+
+        .hero-title {
+            font-size: 2.25rem;
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 1.5rem;
+            color: var(--text-dark);
+        }
+
+        @media (min-width: 768px) {
+            .hero-title {
+                font-size: 3.5rem;
+            }
+        }
+
+        .hero-subtitle {
+            font-size: 1.05rem;
+            color: var(--text-muted);
+            max-width: 700px;
+            margin: 0 auto 2.5rem;
+            line-height: 1.7;
+        }
+
+        .hero-buttons {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        @media (min-width: 768px) {
+            .hero-buttons {
+                flex-direction: row;
+                justify-content: center;
+            }
+        }
+
+        .hero-buttons .btn {
+            width: 100%;
+            max-width: 280px;
+            padding: 1rem 2rem;
+            font-size: 1rem;
+        }
+
+        /* Feature Cards */
         .feature-grid {
             display: grid;
             grid-template-columns: 1fr;
-            gap: 2rem;
+            gap: 1.5rem;
             margin-top: 2rem;
             position: relative;
             z-index: 10;
@@ -58,14 +124,15 @@
         @media (min-width: 768px) {
             .feature-grid {
                 grid-template-columns: repeat(3, 1fr);
+                gap: 2rem;
                 margin-top: -4rem;
             }
         }
 
         .feature-card {
             background: white;
-            padding: 3rem 2rem;
-            border-radius: 30px;
+            padding: 2.5rem 2rem;
+            border-radius: 24px;
             border: 1px solid var(--border);
             transition: var(--transition);
             box-shadow: var(--shadow-md);
@@ -77,22 +144,131 @@
         }
 
         .feature-card:hover {
-            transform: translateY(-15px);
+            transform: translateY(-10px);
             box-shadow: var(--shadow-lg);
             border-color: var(--primary);
         }
 
         .feature-icon {
-            width: 64px;
-            height: 64px;
-            border-radius: 20px;
+            width: 60px;
+            height: 60px;
+            border-radius: 16px;
             background: var(--primary-light);
             color: var(--primary);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.5rem;
-            margin-bottom: 1.5rem;
+            font-size: 1.4rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .feature-card h3 {
+            font-size: 1.15rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+            color: var(--text-dark);
+        }
+
+        .feature-card p {
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        /* Programs Section */
+        .programs-section {
+            padding: 5rem 0;
+            background: var(--bg-main);
+        }
+
+        .programs-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.25rem;
+            margin-top: 2.5rem;
+        }
+
+        @media (min-width: 768px) {
+            .programs-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1.5rem;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .programs-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        .program-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1.25rem 1.5rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            transition: var(--transition);
+        }
+
+        .program-item:hover {
+            border-color: var(--primary);
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .program-item i {
+            font-size: 1.25rem;
+            color: var(--primary);
+            width: 40px;
+            height: 40px;
+            background: var(--primary-light);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .program-item span {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--text-dark);
+        }
+
+        /* Stats */
+        .stats-section {
+            background: white;
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem;
+            text-align: center;
+            padding: 3rem 0;
+        }
+
+        @media (min-width: 768px) {
+            .stats-grid {
+                grid-template-columns: repeat(4, 1fr);
+                padding: 4rem 0;
+            }
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 500;
         }
     </style>
 </head>
@@ -106,34 +282,37 @@
         </a>
         <div class="flex gap-2 items-center">
             <button id="langToggle" class="btn btn-outline btn-sm hidden-mobile" data-i18n="switchLang"
-                style="border-radius: 20px;">Ø§Ù„Ø¹Ø±Ø¨ÙŠØ©</button>
+                style="border-radius: 20px;">العربية</button>
             <a href="login.html" class="btn btn-outline btn-sm" data-i18n="login" style="border-radius: 20px;">Sign In</a>
-            <a href="register.html" class="btn btn-primary btn-sm" data-i18n="register"
+            <a href="register.html" class="btn btn-primary btn-sm" data-i18n="getStarted"
                 style="border-radius: 20px;">Join Now</a>
         </div>
     </nav>
 
     <main>
         <!-- Hero Section -->
-        <section class="hero" style="position: relative; overflow: hidden;">
+        <section class="hero">
             <canvas id="particles-bg"
                 style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none;"></canvas>
             <div class="container" style="position: relative; z-index: 2;">
-                <div
-                    class="inline-block px-4 py-2 rounded-full bg-blue-50 text-primary text-xs font-bold uppercase tracking-widest mb-6 animate-pulse">
-                    Next Generation Medical Platform
+                <div class="badge-pill">
+                    <i class="fas fa-graduation-cap"></i>
+                    <span data-i18n="platformBadge">Training & Professional Development</span>
                 </div>
-                <h1 class="text-4xl md:text-7xl mb-6 leading-tight">
-                    Master Medical Skills <br class="hidden md:block">
-                    <span class="gradient-text">With AI Precision</span>
+                <h1 class="hero-title" data-i18n="heroTitle">
+                    Maharat Academy for <br class="hidden-mobile">
+                    <span class="gradient-text" data-i18n="heroTitleHighlight">Training & Professional Development</span>
                 </h1>
-                <p class="text-xl text-muted mx-auto mb-12 max-w-2xl">
-                    Maharat Academy provides department-based medical training, interactive device simulations, and
-                    personalized AI tutoring for the modern medical professional.
+                <p class="hero-subtitle" data-i18n="heroSub">
+                    A specialized platform providing professional training programs, educational resources, assessments, and skill development opportunities in medical devices and pathological analysis.
                 </p>
-                <div class="flex flex-col md:row justify-center items-center gap-4">
-                    <a href="register.html" class="btn btn-primary px-8 py-4 text-lg" style="width: 100%; max-width: 300px;">Start Learning For Free</a>
-                    <a href="#features" class="btn btn-outline px-8 py-4 text-lg" style="width: 100%; max-width: 300px;">Explore Departments</a>
+                <div class="hero-buttons">
+                    <a href="register.html" class="btn btn-primary" data-i18n="getStarted">
+                        <i class="fas fa-rocket"></i> Explore Programs
+                    </a>
+                    <a href="#features" class="btn btn-outline" data-i18n="learnMore">
+                        <i class="fas fa-info-circle"></i> Learn More
+                    </a>
                 </div>
             </div>
         </section>
@@ -142,46 +321,87 @@
         <section id="features" class="container pb-32">
             <div class="feature-grid">
                 <div class="feature-card">
-                    <div class="feature-icon"><i class="fas fa-layer-group"></i></div>
-                    <h3 class="text-xl mb-4">Department Focused</h3>
-                    <p class="text-muted text-sm">Organized learning paths managed by academic experts specialized in
-                        each medical department.</p>
+                    <div class="feature-icon"><i class="fas fa-heartbeat"></i></div>
+                    <h3 data-i18n="medDevicesTitle">Medical Devices Training</h3>
+                    <p class="text-muted" data-i18n="medDevicesDesc">Specialized learning resources and training programs covering operation, maintenance, and fundamentals of medical devices.</p>
                 </div>
                 <div class="feature-card">
                     <div class="feature-icon" style="color:var(--success); background:#ecfdf5;"><i
-                            class="fas fa-vial"></i></div>
-                    <h3 class="text-xl mb-4">Advanced Simulation</h3>
-                    <p class="text-muted text-sm">Interact with virtual medical devices and laboratory equipment in a
-                        risk-free, immersive environment.</p>
+                            class="fas fa-flask"></i></div>
+                    <h3 data-i18n="pathAnalysisTitle">Pathological Analysis</h3>
+                    <p class="text-muted" data-i18n="pathAnalysisDesc">Educational content and practical training materials supporting laboratory sciences and pathological analysis.</p>
                 </div>
                 <div class="feature-card">
                     <div class="feature-icon" style="color:var(--accent); background:#f0f9ff;"><i
-                            class="fas fa-brain"></i></div>
-                    <h3 class="text-xl mb-4">AI Tutor Integration</h3>
-                    <p class="text-muted text-sm">Get instant answers and guidance from our Gemini-powered AI assistants
-                        customized for your department.</p>
+                            class="fas fa-award"></i></div>
+                    <h3 data-i18n="certReadyTitle">Assessment & Certification</h3>
+                    <p class="text-muted" data-i18n="certReadyDesc">Professional assessments and certificates that help learners demonstrate and track their skills development.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Training Programs -->
+        <section class="programs-section">
+            <div class="container">
+                <h2 class="text-center text-2xl font-bold mb-2" data-i18n="programsHeading">Professional Training Programs</h2>
+                <p class="text-center text-muted mb-8" data-i18n="programsSub">Comprehensive learning paths for healthcare professionals</p>
+                <div class="programs-grid">
+                    <div class="program-item">
+                        <i class="fas fa-stethoscope"></i>
+                        <span data-i18n="prog1">Medical Devices</span>
+                    </div>
+                    <div class="program-item">
+                        <i class="fas fa-cogs"></i>
+                        <span data-i18n="prog2">Biomedical Engineering</span>
+                    </div>
+                    <div class="program-item">
+                        <i class="fas fa-microscope"></i>
+                        <span data-i18n="prog3">Pathological Analysis</span>
+                    </div>
+                    <div class="program-item">
+                        <i class="fas fa-vial"></i>
+                        <span data-i18n="prog4">Laboratory Sciences</span>
+                    </div>
+                    <div class="program-item">
+                        <i class="fas fa-book-open"></i>
+                        <span data-i18n="prog5">Structured Courses</span>
+                    </div>
+                    <div class="program-item">
+                        <i class="fas fa-video"></i>
+                        <span data-i18n="prog6">Training Videos</span>
+                    </div>
+                    <div class="program-item">
+                        <i class="fas fa-certificate"></i>
+                        <span data-i18n="prog7">Skill Certificates</span>
+                    </div>
+                    <div class="program-item">
+                        <i class="fas fa-chart-line"></i>
+                        <span data-i18n="prog8">Progress Tracking</span>
+                    </div>
                 </div>
             </div>
         </section>
 
         <!-- Stats Section -->
-        <section class="bg-white py-12 md:py-24 border-y border-border">
-            <div class="container grid grid-cols-1 md:grid-cols-4 gap-6 md:gap-12 text-center">
-                <div>
-                    <div class="text-4xl font-bold text-primary mb-2">12+</div>
-                    <div class="text-muted font-medium">Departments</div>
-                </div>
-                <div>
-                    <div class="text-4xl font-bold text-primary mb-2">50+</div>
-                    <div class="text-muted font-medium">Simulators</div>
-                </div>
-                <div>
-                    <div class="text-4xl font-bold text-primary mb-2">10k+</div>
-                    <div class="text-muted font-medium">Students</div>
-                </div>
-                <div>
-                    <div class="text-4xl font-bold text-primary mb-2">99%</div>
-                    <div class="text-muted font-medium">Pass Rate</div>
+        <section class="stats-section">
+            <div class="container">
+                <div class="stats-grid">
+                    <div>
+                        <div class="stat-number">5+</div>
+                        <div class="stat-label" data-i18n="statDepts">Training Programs</div>
+                    </div>
+                    <div>
+                        <div class="stat-number">100+</div>
+                        <div class="stat-label" data-i18n="statResources">Learning Resources</div>
+                    </div>
+                    <div>
+                        <div class="stat-number">500+</div>
+                        <div class="stat-label" data-i18n="statStudents">Enrolled Learners</div>
+                    </div>
+                    <div>
+                        <div class="stat-number">98%</div>
+                        <div class="stat-label" data-i18n="statRate">Completion Rate</div>
+                    </div>
                 </div>
             </div>
         </section>
@@ -192,27 +412,31 @@
             <div class="logo font-bold text-xl mb-6 justify-center flex items-center gap-2">
                 <i class="fas fa-microscope text-primary"></i> Maharat Academy
             </div>
-            <p class="text-muted text-sm">Â© 2026 Maharat Academy. All rights reserved. Designed for Excellence.</p>
+            <p class="text-muted text-sm">&copy; 2026 Maharat Academy. All rights reserved. Professional Training & Development Platform.</p>
         </div>
     </footer>
 
     <script type="module" src="js/particles-bg.js"></script>
     <script type="module">
         import i18n from './js/i18n.js';
-        import { initAIWidget } from '/js/ai-widget.js';
+        import { initAIWidget } from './js/ai-widget.js';
         import { supabase } from './js/services/supabase.js';
 
         async function checkSession() {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (user) {
-                const { data: profile } = await supabase.from('profiles').select('role, status').eq('id', user.id).single();
-                if (profile) {
-                    if (profile.status === 'approved') {
-                        window.location.href = `./dashboard/${profile.role}.html`;
-                    } else {
-                        window.location.href = `./pages/waiting-approval.html`;
+            try {
+                const { data: { user } } = await supabase.auth.getUser();
+                if (user) {
+                    const { data: profile } = await supabase.from('profiles').select('role, status').eq('id', user.id).single();
+                    if (profile) {
+                        if (profile.status === 'approved') {
+                            window.location.href = `./dashboard/${profile.role}.html`;
+                        } else {
+                            window.location.href = `./pages/waiting-approval.html`;
+                        }
                     }
                 }
+            } catch (e) {
+                console.log('No active session');
             }
         }
 

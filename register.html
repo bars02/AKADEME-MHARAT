@@ -4,9 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.groq.com; media-src 'self' blob: https:; frame-src blob: https://www.youtube.com;">
+        content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net; media-src 'self' blob: https:; frame-src blob: https://www.youtube.com;">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title data-i18n="register">Register - Akram Academy</title>
+    <title data-i18n="register">Register - Maharat Academy</title>
     <link rel="stylesheet" href="css/main.css">
     <link rel="stylesheet" href="css/components.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -23,23 +23,22 @@
                     <span class="brand-text">Maharat</span>
                 </a>
                 <h1 data-i18n="joinNetwork">Join the Network</h1>
-                <p data-i18n="registerSub">Be part of the next generation of medical professionals. Start your
-                    specialized training today.</p>
+                <p data-i18n="registerVisualSub">Start your professional training journey in medical devices and pathological analysis.</p>
             </div>
         </div>
 
         <!-- Form Side -->
         <div class="auth-form-wrapper">
             <div class="auth-glass-card">
-                <div class="text-center mb-8">
+                <div class="text-center mb-6">
                     <h2 class="text-3xl font-bold mb-2" data-i18n="register">Create Account</h2>
-                    <p class="text-muted text-base" data-i18n="registerSub">Join our medical education network</p>
+                    <p class="text-muted text-base" data-i18n="registerSub">Join our professional training network</p>
                 </div>
 
                 <form id="regForm" class="grid gap-4">
                     <div class="form-group">
                         <label data-i18n="fullName">Full Name</label>
-                        <input type="text" id="name" class="form-input" required placeholder="John Doe">
+                        <input type="text" id="name" class="form-input" required placeholder="Full Name">
                     </div>
                     <div class="grid grid-cols-2 gap-4">
                         <div class="form-group">
@@ -61,7 +60,7 @@
                     <div class="form-group">
                         <label data-i18n="password">Password</label>
                         <input type="password" id="pass" class="form-input" required minlength="6"
-                            placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢">
+                            placeholder="********">
                     </div>
                     <button type="submit" id="subBtn" class="btn btn-primary w-full py-3 mt-2"
                         style="font-size: 1rem;"><i class="fas fa-user-plus"></i> <span
@@ -69,8 +68,8 @@
                 </form>
 
                 <p class="text-center mt-6 text-sm text-muted">
-                    <span data-i18n="alreadyHaveAccount">Registered?</span>
-                    <a href="login.html" class="text-primary font-bold hover:underline" data-i18n="login">Login</a>
+                    <span data-i18n="alreadyHaveAccount">Already registered?</span>
+                    <a href="login.html" class="text-primary font-bold hover:underline" data-i18n="login">Sign In</a>
                 </p>
             </div>
         </div>
@@ -99,18 +98,17 @@
                     throw new Error('Supabase not configured. Please update js/services/supabase.js');
                 }
 
-                select.innerHTML = `<option value="">${i18n.lang === 'ar' ? 'Ø¬Ø§Ø±ÙŠ Ø§Ù„ØªØ­Ù…ÙŠÙ„...' : 'Loading...'}</option>`;
+                select.innerHTML = `<option value="">${i18n.lang === 'ar' ? 'جاري التحميل...' : 'Loading...'}</option>`;
 
                 const { data, error } = await supabase.from('departments').select('*');
 
                 if (error) throw error;
 
-                select.innerHTML = `<option value="">${i18n.lang === 'ar' ? 'Ø§Ø®ØªØ± Ø§Ù„Ù‚Ø³Ù…' : 'Select Department'}</option>`;
+                select.innerHTML = `<option value="">${i18n.lang === 'ar' ? 'اختر القسم' : 'Select Department'}</option>`;
                 if (data && data.length > 0) {
                     data.forEach(d => {
                         const o = document.createElement('option');
                         o.value = d.id;
-                        // Attempt to translate name if key exists
                         const key = d.name.toLowerCase().replace(/ ( [a-z])/g, g => g[1].toUpperCase()).replace(/ /g, '');
                         o.textContent = i18n.t(key) !== key ? i18n.t(key) : d.name;
                         select.appendChild(o);

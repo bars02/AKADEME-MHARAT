@@ -613,21 +613,35 @@ body {
     .auth-form-wrapper {
         min-height: 100vh;
         background: transparent;
-        padding: 1.5rem;
+        padding: 1.25rem;
         z-index: 10;
+        display: flex;
+        align-items: flex-start;
+        padding-top: 4rem;
     }
     .auth-glass-card {
         background: rgba(255, 255, 255, 0.95);
         backdrop-filter: blur(20px);
-        margin-top: 5rem;
+        -webkit-backdrop-filter: blur(20px);
+        padding: 2rem 1.5rem;
+        max-width: 100%;
     }
     
     .auth-glass-card .grid-cols-2 {
         grid-template-columns: 1fr;
     }
+
+    .auth-glass-card .form-input {
+        font-size: 1rem;
+        padding: 0.75rem 1rem;
+    }
+
+    .auth-glass-card .form-group label {
+        font-size: 0.85rem;
+    }
     
     [data-theme="dark"] .auth-glass-card {
-        background: rgba(15, 23, 42, 0.85);
+        background: rgba(15, 23, 42, 0.9);
     }
 }
 
